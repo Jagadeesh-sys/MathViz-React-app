@@ -1,0 +1,339 @@
+/* Main graph container styling */
+.graph-container {
+  position: absolute;
+  top: 0;
+  left: 80px;
+  width: 100vw; /* Full width of the viewport */
+  height: 100vh; /* Full height of the viewport */
+  overflow: hidden; /* Prevents any content from overflowing */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: grab;
+  transition: width 0.3s ease; /* Smooth transition */
+}
+
+.graph-container:active {
+  cursor: grabbing; /* Cursor when dragging */
+}
+
+/* Make sure the canvas is responsive */
+.graph-canvas {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  background-color: #fff;
+  object-fit: contain; /* Ensures content fits within the container */
+}
+
+/* Controls section (zoom and fullscreen buttons) */
+.controls {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Control button styling */
+.controls button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  font-size: 18px;
+  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s;
+  border: none; /* Remove border */
+  width: 40px;
+  height: 40px;
+}
+
+.controls button:hover {
+  background-color: rgba(255, 255, 255, 1);
+}
+
+/* Icons inside the buttons */
+.controls button svg {
+  width: 20px;
+  height: 20px;
+  color: #333;
+  transition: color 0.3s;
+}
+
+.controls button:hover svg {
+  color: #007bff; /* Change color on hover */
+}
+
+.graph-controls {
+  position: absolute;
+  top: 50%;
+  right: 20px;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 1001;
+}
+
+.control-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #333;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  font-size: 1.1em;
+}
+
+.control-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateX(-2px);
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.control-btn:active {
+  transform: translateX(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.control-btn.active {
+  background: #e8f0fe;
+  color: #1a73e8;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.control-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.settings-panel {
+  position: absolute;
+  top: 10px;
+  right: 80px;
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+}
+
+.settings-group {
+  margin-bottom: 10px;
+}
+
+.settings-group label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+}
+
+.settings-group input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.settings-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Add a separator line between controls */
+.graph-controls button:not(:last-child) {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding-bottom: 8px;
+}
+
+/* Mobile and smaller devices (max-width: 768px) */
+@media (max-width: 768px) {
+  .graph-container {
+    width: 100vw; /* Ensure full width */
+    height: 100vh; /* Ensure full height */
+    margin-top: 0;
+    margin-left: 0;
+  }
+
+  .controls {
+    top: 10px;
+    right: 10px;
+  }
+
+  .controls button {
+    font-size: 14px;
+    padding: 8px;
+    width: 35px;
+    height: 35px;
+  }
+
+  .controls button svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* For larger screens (min-width: 769px) */
+@media (min-width: 769px) {
+  .graph-container {
+    width: 100vw; /* Full width for larger screens */
+    height: 100vh; /* Full height for larger screens */
+  }
+
+  .controls {
+    top: 20px; /* Adjusted margin from the top */
+    right: 20px;
+  }
+
+  .controls button {
+    font-size: 18px;
+    padding: 12px;
+    width: 40px;
+    height: 40px;
+  }
+
+  .controls button svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.graph-area {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1000;
+  background: white;
+}
+
+.graph-area canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.context-menu {
+  position: absolute;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  z-index: 1000;
+}
+
+.context-menu button {
+  display: block;
+  width: 100%;
+  padding: 8px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.context-menu button:hover {
+  background-color: #f0f0f0;
+}
+
+/* Hide scrollbars but keep functionality */
+::-webkit-scrollbar {
+  display: none;
+}
+
+* {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.settings-dropdown {
+  position: absolute;
+  top: 20px;
+  right: 2px;
+  background: #ffffff; /* White background */
+  border: 1px solid #ccc; /* Subtle border */
+  border-radius: 8px; /* Rounded corners */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Softer shadow */
+  padding: 15px; /* Remove padding for clean item alignment */
+  z-index: 1000;
+  min-width: 250px; /* Ensure consistent width */
+  font-family: Arial, sans-serif; /* Clean and modern font */
+}
+
+.settings-dropdown ul {
+  list-style: none;
+  margin: 0;
+  padding: 10px;
+}
+
+.settings-dropdown ul li {
+  padding: 10px 15px; /* Consistent spacing */
+  cursor: pointer;
+  font-size: 14px; /* Readable font size */
+  color: #333; /* Neutral text color */
+  transition: background-color 0.2s, color 0.2s;
+  display: flex;
+  align-items: center; /* Align text and icons */
+}
+
+.settings-dropdown ul li:hover {
+  background-color: #f8f9fa; /* Light gray hover effect */
+}
+
+.settings-dropdown ul li svg {
+  margin-right: 10px; /* Space between icons and text */
+  width: 16px;
+  height: 16px;
+}
+
+.settings-dropdown ul li.checked {
+  color: #007bff; /* Highlighted color for checked items */
+  font-weight: bold;
+}
+
+.settings-dropdown .submenu {
+  padding-left: 20px; /* Indentation for submenu */
+}
+
+.settings-dropdown .submenu ul li {
+  padding: 8px 10px;
+}
+
+.settings-dropdown ul li.separator {
+  height: 1px;
+  margin: 5px 0;
+  background-color: #ddd; /* Divider for clarity */
+}
+
+.settings-dropdown button {
+  width: 100%;
+  padding: 10px;
+  background-color: #007bff; /* Button background color */
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.settings-dropdown button:hover {
+  background-color: #0056b3; /* Darker blue on hover */
+}

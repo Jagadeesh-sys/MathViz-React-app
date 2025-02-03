@@ -1,0 +1,188 @@
+/* Flexbox layout for the Input Bar */
+.input-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  position: absolute;
+  top: 60px;
+  left: 80px;
+  width: 300px;
+  height: 100%;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+/* Equation Input section */
+.equation-input {
+  display: flex;
+  align-items: center;
+  width: 90%;
+  padding: 10px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.add-button {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  color: #555;
+}
+
+.add-button:hover {
+  color: #000;
+}
+
+.input-bar input {
+  flex: 1;
+  padding: 8px;
+  font-size: 16px;
+  border-radius: 4px;
+  outline: none; /* Remove the browser default outline */
+  background-color: #fff;
+}
+
+.input-bar input:focus {
+  border-color: #fff !important; /* Keep the border color neutral */
+  box-shadow: none !important; /* Remove focus shadow */
+  outline: none !important; /* Remove focus outline */
+}
+
+/* Equation list */
+.equation-list {
+  margin-top: 20px;
+  padding: 10px; /* Optional: padding to make the border less tight */
+  border-radius: 8px; /* Optional: rounded corners for the outline */
+  width: 90%;
+}
+
+/* Styling for each equation item */
+.equation-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1px;
+  padding: 2px;
+  background-color: #fff;
+  border-radius: 8px;
+  width: 100%;
+}
+
+/* Container for action buttons (edit, delete) */
+.equation-actions {
+  display: flex;
+  justify-content: flex-end; /* Align buttons to the right */
+  gap: 10px; /* Space between the buttons */
+}
+
+/* Styling for action buttons */
+.action-button {
+  background-color: #fff; /* Set the background color to white */
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  font-size: 16px;
+  border-radius: 50%; /* Make the button round */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #000; /* Black color for the action icons */
+}
+
+/* Action button hover state */
+.action-button:hover {
+  background-color: #f0f0f0;
+  border-radius: 50%;
+}
+
+/* Error message styling */
+.error-message {
+  color: #e74c3c;
+  font-size: 1rem;
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  width: 100%;
+  text-align: center;
+}
+
+/* Styling for the delete button inside the equation item */
+.equation-item button {
+  background-color: #fff; /* Set the background color to white */
+  border: none;
+  cursor: pointer;
+  padding: 1px;
+  font-size: 18px;
+  border-radius: 50%; /* Make the button round */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #000; /* Black color for the delete icon */
+}
+
+/* Delete button hover state */
+.equation-item button:hover {
+  background-color: #f0f0f0; /* Light gray background on hover */
+  border-radius: 50%; /* Rounded shape */
+}
+
+/* Buttons for save and cancel edit */
+.edit-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .input-bar {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    width: calc(100% - 20px);
+    height: auto;
+    box-shadow: none;
+  }
+
+  .equation-input {
+    width: 100%;
+    padding: 8px;
+  }
+
+  .equation-list {
+    width: 100%;
+  }
+
+  .equation-item {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 5px;
+  }
+
+  .equation-actions {
+    justify-content: flex-start;
+  }
+
+  .edit-buttons {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .add-button {
+    font-size: 18px;
+  }
+
+  .input-bar input {
+    font-size: 14px;
+    padding: 6px;
+  }
+
+  .action-button {
+    font-size: 14px;
+    padding: 4px;
+  }
+}

@@ -1,0 +1,56 @@
+/* Container for the chart and distribution area */
+.distribution-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 20px;
+  margin-top: 80px;
+  margin-left: 80px;
+  margin: 0 auto; /* Center horizontally */
+  border-radius: 10px; /* Rounded corners */
+  background-color: #ffffff; /* White background */
+  overflow: hidden;
+}
+
+
+/* Chart styling */
+.chart {
+  width: 90%;
+  height: 100%;
+  padding: 20px;
+  margin-left: 300px;
+  box-sizing: border-box;
+  border-radius: 8px;
+  background-color: #ffffff; /* White background */
+}
+
+/* Responsiveness for smaller screens */
+@media (max-width: 768px) {
+  .distribution-area {
+    padding: 15px;
+    max-width: 100%;
+  }
+
+  .distribution-area h3 {
+    font-size: 1.5rem;
+  }
+
+  .chart {
+    padding: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .distribution-area {
+    padding: 10px;
+  }
+
+  .distribution-area h3 {
+    font-size: 1.2rem;
+  }
+
+  .chart {
+    padding: 8px;
+  }
+}

@@ -1,0 +1,38 @@
+/* Statistics.css */
+.statistics-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* Full viewport height */
+    font-size: 2rem; /* Adjust font size as needed */
+  }
+ 
+  /* Statistics.css */
+.statistics-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* Full viewport height */
+  }
+  
+  .upload-button {
+    background-color: #5a4cc1; /* Green background */
+    color: white; /* White text */
+    padding: 15px 32px; /* Padding */
+    text-align: center; /* Center text */
+    text-decoration: none; /* No underline */
+    display: inline-block; /* Inline block */
+    font-size: 16px; /* Font size */
+    margin: 4px 2px; /* Margin */
+    cursor: pointer; /* Pointer cursor on hover */
+    border: none; /* No border */
+    border-radius: 5px; /* Rounded corners */
+    transition: background-color 0.3s; /* Transition effect */
+    left:43vw;
+    top: 15vh;
+    position: absolute;
+  }
+  
+  .upload-button:hover {
+    background-color: #5a4cc1 /* Darker green on hover */
+  }

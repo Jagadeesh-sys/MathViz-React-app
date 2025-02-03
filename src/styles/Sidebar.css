@@ -1,0 +1,58 @@
+/* Sidebar Container */
+.sidebar {
+  width: 80px; /* Width of the sidebar */
+  height: 100vh;
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center align icons and text */
+  padding-top: 90px;
+  position: fixed;
+  left: 0; /* Align sidebar to the left edge of the screen */
+  margin-left: 0; /* Ensure no margin on the left side */
+  box-shadow: 0 2px 5px rgba(18, 18, 18, 0.1); /* Light shadow effect */
+  /* Added shadow for a subtle effect */
+}
+
+/* Button Styles */
+.sidebar-button {
+  background-color: transparent;
+  border: none;
+  color: #333; /* Dark text color */
+  padding: 10px;
+  margin-bottom: 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 14px; /* Adjust text size */
+  cursor: pointer;
+  width: 100%;
+  transition: background-color 0.3s ease;
+}
+
+/* Icon styles */
+.sidebar-button i {
+  font-size: 24px; /* Icon size */
+  margin-bottom: 5px; /* Space between icon and text */
+}
+
+/* Text below icon */
+.sidebar-button span {
+  font-size: 12px; /* Smaller text below icons */
+  margin-top: 5px;
+  color: #555; /* Lighter color for text */
+}
+
+/* Hover effect */
+.sidebar-button:hover {
+  background-color: #f0f0f0; /* Light background on hover */
+  border-radius: 5px;
+}
+
+/* Active button styles (optional) */
+.sidebar-button.active {
+  background-color: #16a085;
+  border-radius: 5px;
+  color: white; /* White text when active */
+}

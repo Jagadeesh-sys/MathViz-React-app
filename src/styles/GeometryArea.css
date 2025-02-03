@@ -1,0 +1,218 @@
+/* Container for the canvas and tools */
+.geometry-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  background-color: white;
+}
+
+/* Canvas styling */
+.canvas {
+  border: 2px solid #333;
+  background-color: #fff;
+  margin-bottom: 20px;
+  cursor: crosshair;
+  width: 100%;
+  max-width: 800px;
+  height: 500px;
+  box-sizing: border-box;
+  transition: all 0.3s ease; /* Smooth transition for resizing */
+}
+
+/* Tool buttons container */
+.controls {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 130px;
+  margin-right: 90px;
+  width: 3%;
+  position: absolute;
+  top: 20px;
+  z-index: 1;
+  padding: 10px;
+}
+
+/* Individual tool button styles */
+.tool-button {
+  padding: 12px 18px;
+  background-color: #007bff;
+  color: white;
+  font-size: 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s ease-in-out, box-shadow 0.2s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.tool-button:hover {
+  background-color: #0056b3;
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Tool visibility toggle button */
+.toggle-visibility-btn {
+  padding: 12px 20px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s ease-in-out, box-shadow 0.2s ease;
+}
+
+.toggle-visibility-btn:hover {
+  background-color: #218838;
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Selected element display */
+.selected-element-info {
+  margin-top: 15px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+  text-align: center;
+}
+
+.selected-element-info span {
+  color: #007bff;
+  font-weight: normal;
+}
+
+/* Label input prompt */
+.label-input-prompt {
+  font-size: 14px;
+  color: #333;
+  margin-top: 10px;
+}
+
+.label-input-prompt input {
+  padding: 8px;
+  margin-top: 8px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  width: 100%;
+  max-width: 220px;
+  box-sizing: border-box;
+  transition: border-color 0.3s ease, box-shadow 0.2s ease;
+}
+
+.label-input-prompt input:focus {
+  border-color: #007bff;
+  outline: none;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+/* Responsiveness for smaller screens */
+@media (max-width: 768px) {
+  .geometry-container {
+    padding: 10px;
+  }
+
+  .controls {
+    flex-direction: column;
+    align-items: center;
+    position: static; /* Remove absolute positioning for smaller screens */
+    gap: 10px;
+  }
+
+  .canvas {
+    width: 100%;
+    max-width: none;
+    height: 350px;
+  }
+
+  .tool-button, .toggle-visibility-btn {
+    width: 100%;
+    max-width: 200px;
+  }
+
+  .label-input-prompt input {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .canvas {
+    height: 300px; /* Adjust canvas height for very small screens */
+  }
+
+  .tool-button, .toggle-visibility-btn {
+    width: 100%;
+    padding: 10px 15px;
+    font-size: 14px;
+  }
+
+  .label-input-prompt input {
+    font-size: 13px;
+    padding: 6px;
+  }
+}
+
+.geometry-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: white;
+  margin: 0;
+  padding: 0;
+}
+
+.context-menu {
+  position: fixed;
+  background: white;
+  border: 1px solid #ccc;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+}
+
+.context-menu-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.context-menu-item:hover {
+  background-color: #f0f0f0;
+}
+
+.color-picker {
+  position: absolute;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 5px;
+  background: white;
+  border: 1px solid #ccc;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.color-option {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.color-option:hover {
+  transform: scale(1.2);
+}
