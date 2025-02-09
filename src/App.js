@@ -28,6 +28,7 @@ const App = () => {
   const [exportPreview, setExportPreview] = useState(null);
   const [exportHandler, setExportHandler] = useState(null);
   const [geometryShapes, setGeometryShapes] = useState([]);
+  const [tableData, setTableData] = useState([]);
 
   const handleStartCalculator = () => setShowCalculator(true);
 
@@ -69,11 +70,15 @@ const App = () => {
     setDistributionParams({ distribution, parameters, intervals });
 
   const handleAddPoint = (point) => {
-    setPoints((prevPoints) => [...prevPoints, point]);
+    setTableData(prevData => [...prevData, {
+      x: point.x,
+      y: point.y,
+      label: point.label
+    }]);
   };
 
   const handleClearPoints = () => {
-    setPoints([]);
+    setTableData([]);
   };
 
   const saveGraphToFile = () => {
@@ -249,6 +254,7 @@ const App = () => {
               equations={equations} 
               selectedTool={selectedTool} 
               points={points} 
+              tableData={tableData}
               onAddPoint={handleAddPoint}
               onClearPoints={handleClearPoints}
               onExportPreview={handleExportPreview}
@@ -282,7 +288,13 @@ const App = () => {
             />
           )}
           {visibleComponent === "distributionBar" && <DistributionBar onUpdate={handleDistributionUpdate} />}
-          {visibleComponent === "tableBar" && <TableBar onAddPoint={handleAddPoint} onClearPoints={handleClearPoints} />}
+          {visibleComponent === "tableBar" && (
+            <TableBar 
+              onAddPoint={handleAddPoint} 
+              onClearPoints={handleClearPoints}
+              tableData={tableData}
+            />
+          )}
         </div>
       ) : (
         <HomePage onStartCalculator={handleStartCalculator} />

@@ -1,29 +1,48 @@
 /* Main graph container styling */
 .graph-container {
-  position: absolute;
-  top: 0;
-  left: 80px;
-  width: 100vw; /* Full width of the viewport */
-  height: 100vh; /* Full height of the viewport */
-  overflow: hidden; /* Prevents any content from overflowing */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: grab;
-  transition: width 0.3s ease; /* Smooth transition */
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
 }
 
-.graph-container:active {
-  cursor: grabbing; /* Cursor when dragging */
-}
-
-/* Make sure the canvas is responsive */
 .graph-canvas {
   width: 100%;
   height: 100%;
+  cursor: crosshair;
+}
+
+.graph-toolbar {
+  position: absolute;
+  top: 10px;
+  right: 10px;
   display: flex;
-  background-color: #fff;
-  object-fit: contain; /* Ensures content fits within the container */
+  gap: 8px;
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 8px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.graph-toolbar button {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  transition: all 0.2s ease;
+}
+
+.graph-toolbar button:hover {
+  background-color: #f5f5f5;
+  color: #333;
 }
 
 /* Controls section (zoom and fullscreen buttons) */
@@ -161,56 +180,50 @@
   padding-bottom: 8px;
 }
 
-/* Mobile and smaller devices (max-width: 768px) */
-@media (max-width: 768px) {
-  .graph-container {
-    width: 100vw; /* Ensure full width */
-    height: 100vh; /* Ensure full height */
-    margin-top: 0;
-    margin-left: 0;
-  }
-
-  .controls {
-    top: 10px;
-    right: 10px;
-  }
-
-  .controls button {
-    font-size: 14px;
-    padding: 8px;
-    width: 35px;
-    height: 35px;
-  }
-
-  .controls button svg {
-    width: 16px;
-    height: 16px;
-  }
+.context-menu {
+  background: white;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  padding: 8px;
+  z-index: 1000;
 }
 
-/* For larger screens (min-width: 769px) */
-@media (min-width: 769px) {
-  .graph-container {
-    width: 100vw; /* Full width for larger screens */
-    height: 100vh; /* Full height for larger screens */
-  }
+.context-menu button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #333;
+  transition: background-color 0.2s ease;
+}
 
-  .controls {
-    top: 20px; /* Adjusted margin from the top */
-    right: 20px;
-  }
+.context-menu button:hover {
+  background-color: #f5f5f5;
+}
 
-  .controls button {
-    font-size: 18px;
-    padding: 12px;
-    width: 40px;
-    height: 40px;
-  }
+.color-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+  border-top: 1px solid #e0e0e0;
+  padding-top: 8px;
+}
 
-  .controls button svg {
-    width: 20px;
-    height: 20px;
-  }
+.color-picker button {
+  padding: 6px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.color-picker button:hover {
+  opacity: 0.8;
 }
 
 .graph-area {
@@ -227,30 +240,6 @@
   width: 100%;
   height: 100%;
   display: block;
-}
-
-.context-menu {
-  position: absolute;
-  background: white;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  padding: 8px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-  z-index: 1000;
-}
-
-.context-menu button {
-  display: block;
-  width: 100%;
-  padding: 8px;
-  border: none;
-  background: none;
-  cursor: pointer;
-  text-align: left;
-}
-
-.context-menu button:hover {
-  background-color: #f0f0f0;
 }
 
 /* Hide scrollbars but keep functionality */
@@ -335,5 +324,76 @@
 }
 
 .settings-dropdown button:hover {
-  background-color: #0056b3; /* Darker blue on hover */
+  background-color: #0056b3; /* Darker blue on hover */
+}
+
+/* Mobile and smaller devices (max-width: 768px) */
+@media (max-width: 768px) {
+  .graph-container {
+    width: 100vw; /* Ensure full width */
+    height: 100vh; /* Ensure full height */
+    margin-top: 0;
+    margin-left: 0;
+  }
+
+  .controls {
+    top: 10px;
+    right: 10px;
+  }
+
+  .controls button {
+    font-size: 14px;
+    padding: 8px;
+    width: 35px;
+    height: 35px;
+  }
+
+  .controls button svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* For larger screens (min-width: 769px) */
+@media (min-width: 769px) {
+  .graph-container {
+    width: 100vw; /* Full width for larger screens */
+    height: 100vh; /* Full height for larger screens */
+  }
+
+  .controls {
+    top: 20px; /* Adjusted margin from the top */
+    right: 20px;
+  }
+
+  .controls button {
+    font-size: 18px;
+    padding: 12px;
+    width: 40px;
+    height: 40px;
+  }
+
+  .controls button svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* Update the geometry-container and canvas styles */
+.geometry-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: white;
+}
+
+.geometry-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+  touch-action: none;
+  user-select: none;
 }

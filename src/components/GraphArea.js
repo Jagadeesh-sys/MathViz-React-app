@@ -32,7 +32,16 @@ const ELEMENT_COLORS = {
   Circle: "blue",
 };
 
-const GraphArea = ({ selectedTool, equations = [], onExportPreview }) => {
+// Update SCALE_INTERVALS to match GeoGebra's grid intervals
+const SCALE_INTERVALS = [
+  0.01, 0.02, 0.05,        // Extremely zoomed out
+  0.1, 0.2, 0.5,           // Very zoomed out
+  1, 2, 5,                 // Normal range
+  10, 20, 50,             // Zoomed in
+  100, 200, 500,          // Very zoomed in
+];
+
+const GraphArea = ({ selectedTool, equations = [], onExportPreview, tableData = [] }) => {
   const [drawnElements, setDrawnElements] = useState([]);
   const [polygonPoints, setPolygonPoints] = useState([]);
   const [midpointPoints, setMidpointPoints] = useState([]);
@@ -42,8 +51,146 @@ const GraphArea = ({ selectedTool, equations = [], onExportPreview }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const canvasRef = useRef(null);
-  const startDrag = useRef(null);
-  const [isMoving, setIsMoving] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [lastOffset, setLastOffset] = useState({ x: 0, y: 0 });
+  const [gridScale] = useState(50);
+
+  const drawGridAndAxes = useCallback((ctx) => {
+    const canvas = canvasRef.current;
+    const width = canvas.width;
+    const height = canvas.height;
+    
+    // Adjust origin based on offset
+    const originX = width / 2 + offset.x;
+    const originY = height / 2 + offset.y;
+
+    // Calculate scaled grid spacing
+    const baseGridSpacing = gridScale / scale; // Invert scale to make grid grow when zooming out
+    
+    // Define getGridInterval inside useCallback
+    const getGridInterval = (currentScale) => {
+      const baseInterval = currentScale;  // Remove inversion to match scale direction
+      return SCALE_INTERVALS.reduce((prev, curr) => {
+        return Math.abs(curr - baseInterval) < Math.abs(prev - baseInterval) ? curr : prev;
+      });
+    };
+    
+    // Get appropriate grid interval
+    const gridInterval = getGridInterval(scale);
+    const minorGridInterval = gridInterval / 5;
+
+    // Draw minor grid lines
+    ctx.strokeStyle = "#e0e0e0";
+    ctx.lineWidth = 0.5;
+
+    // Calculate grid boundaries
+    const leftBound = -Math.ceil(originX / baseGridSpacing);
+    const rightBound = Math.ceil((width - originX) / baseGridSpacing);
+    const topBound = Math.ceil(originY / baseGridSpacing);
+    const bottomBound = -Math.ceil((height - originY) / baseGridSpacing);
+
+    // Draw minor grid lines
+    for (let i = Math.floor(leftBound / minorGridInterval); 
+         i <= Math.ceil(rightBound / minorGridInterval); 
+         i++) {
+      const x = i * minorGridInterval;
+      const pixelX = originX + x * baseGridSpacing;
+      ctx.beginPath();
+      ctx.moveTo(pixelX, 0);
+      ctx.lineTo(pixelX, height);
+      ctx.stroke();
+    }
+
+    for (let i = Math.floor(bottomBound / minorGridInterval); 
+         i <= Math.ceil(topBound / minorGridInterval); 
+         i++) {
+      const y = i * minorGridInterval;
+      const pixelY = originY - y * baseGridSpacing;
+      ctx.beginPath();
+      ctx.moveTo(0, pixelY);
+      ctx.lineTo(width, pixelY);
+      ctx.stroke();
+    }
+
+    // Draw major grid lines
+    ctx.strokeStyle = "#cccccc";
+    ctx.lineWidth = 0.8;
+
+    // Calculate decimal places for labels
+    const decimalPlaces = Math.max(0, -Math.floor(Math.log10(gridInterval)));
+    
+    // Draw vertical major grid lines and labels
+    for (let i = Math.floor(leftBound); i <= Math.ceil(rightBound); i++) {
+      const x = i * gridInterval;
+      const pixelX = originX + x * baseGridSpacing;
+      
+      // Draw line
+      ctx.beginPath();
+      ctx.moveTo(pixelX, 0);
+      ctx.lineTo(pixelX, height);
+      ctx.stroke();
+
+      // Draw label if not at origin
+      if (Math.abs(x) > gridInterval / 1000) {
+        const label = x.toFixed(decimalPlaces);
+        ctx.font = "12px Arial";
+        ctx.fillStyle = "#666666";
+        ctx.textAlign = "center";
+        ctx.fillText(label, pixelX, originY + 20);
+      }
+    }
+
+    // Draw horizontal major grid lines and labels
+    for (let i = Math.floor(bottomBound); i <= Math.ceil(topBound); i++) {
+      const y = i * gridInterval;
+      const pixelY = originY - y * baseGridSpacing;
+      
+      // Draw line
+      ctx.beginPath();
+      ctx.moveTo(0, pixelY);
+      ctx.lineTo(width, pixelY);
+      ctx.stroke();
+
+      // Draw label if not at origin
+      if (Math.abs(y) > gridInterval / 1000) {
+        const label = y.toFixed(decimalPlaces);
+        ctx.font = "12px Arial";
+        ctx.fillStyle = "#666666";
+        ctx.textAlign = "right";
+        ctx.fillText(label, originX - 10, pixelY);
+      }
+    }
+
+    // Draw axes
+    ctx.strokeStyle = "#000000";
+    ctx.lineWidth = 1.5;
+
+    // X-axis
+    ctx.beginPath();
+    ctx.moveTo(0, originY);
+    ctx.lineTo(width, originY);
+    ctx.stroke();
+
+    // Y-axis
+    ctx.beginPath();
+    ctx.moveTo(originX, 0);
+    ctx.lineTo(originX, height);
+    ctx.stroke();
+
+    // Draw origin (0,0)
+    ctx.fillStyle = "#000000";
+    ctx.textAlign = "right";
+    ctx.fillText("0", originX - 5, originY + 15);
+
+    // Display current scale and grid interval
+    ctx.font = "14px Arial";
+    ctx.fillStyle = "#000000";
+    ctx.textAlign = "left";
+    ctx.fillText(`Scale: ${scale.toFixed(2)}x`, 10, 20);
+    ctx.fillText(`Grid Unit: ${gridInterval}`, 10, 40);
+  }, [offset, scale, gridScale]);
 
   // Get next available label
   const getNextLabel = useCallback(() => {
@@ -106,113 +253,6 @@ const GraphArea = ({ selectedTool, equations = [], onExportPreview }) => {
     } catch (error) {
       console.error("Error drawing function:", error);
     }
-  }, []);
-
-  // Function to draw grid and axes
-  const drawGridAndAxes = useCallback((ctx) => {
-    const canvas = canvasRef.current;
-    const width = canvas.width;
-    const height = canvas.height;
-    const scaleX = 50; // pixels per unit on x-axis
-    const scaleY = 50; // pixels per unit on y-axis
-    const originX = width / 2;
-    const originY = height / 2;
-
-    // Draw internal grid lines (subdivisions)
-    ctx.strokeStyle = "#f0f0f0";
-    ctx.lineWidth = 0.3;
-
-    // Draw vertical internal grid lines
-    for (let x = originX % (scaleX/5); x < width; x += scaleX/5) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, height);
-      ctx.stroke();
-    }
-
-    // Draw horizontal internal grid lines
-    for (let y = originY % (scaleY/5); y < height; y += scaleY/5) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(width, y);
-      ctx.stroke();
-    }
-
-    // Set main grid style
-    ctx.strokeStyle = "#e0e0e0";
-    ctx.lineWidth = 0.5;
-
-    // Draw vertical grid lines
-    for (let x = originX % scaleX; x < width; x += scaleX) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, height);
-      ctx.stroke();
-    }
-
-    // Draw horizontal grid lines
-    for (let y = originY % scaleY; y < height; y += scaleY) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(width, y);
-      ctx.stroke();
-    }
-
-    // Draw axes
-    ctx.strokeStyle = "#000000";
-    ctx.lineWidth = 1;
-
-    // X-axis
-    ctx.beginPath();
-    ctx.moveTo(0, originY);
-    ctx.lineTo(width, originY);
-    ctx.stroke();
-
-    // Y-axis
-    ctx.beginPath();
-    ctx.moveTo(originX, 0);
-    ctx.lineTo(originX, height);
-    ctx.stroke();
-
-    // Draw axis labels and ticks
-    ctx.font = "12px Arial";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillStyle = "#000000";
-
-    // X-axis labels and ticks
-    for (let x = -Math.floor(originX / scaleX); x <= Math.floor((width - originX) / scaleX); x++) {
-      if (x === 0) continue;
-      const pixelX = originX + x * scaleX;
-      
-      // Draw tick
-      ctx.beginPath();
-      ctx.moveTo(pixelX, originY - 5);
-      ctx.lineTo(pixelX, originY + 5);
-      ctx.stroke();
-
-      // Draw label
-      ctx.fillText(x.toString(), pixelX, originY + 20);
-    }
-
-    // Y-axis labels and ticks
-    ctx.textAlign = "right";
-    for (let y = -Math.floor(originY / scaleY); y <= Math.floor((height - originY) / scaleY); y++) {
-      if (y === 0) continue;
-      const pixelY = originY - y * scaleY;
-      
-      // Draw tick
-      ctx.beginPath();
-      ctx.moveTo(originX - 5, pixelY);
-      ctx.lineTo(originX + 5, pixelY);
-      ctx.stroke();
-
-      // Draw label
-      ctx.fillText(y.toString(), originX - 10, pixelY);
-    }
-
-    // Draw origin (0)
-    ctx.fillText("0", originX - 10, originY + 20);
   }, []);
 
   // Effect to redraw canvas when equations change
@@ -418,6 +458,26 @@ const GraphArea = ({ selectedTool, equations = [], onExportPreview }) => {
     }
   }, [selectedTool, polygonPoints]);
 
+  // Add effect to handle table data points
+  useEffect(() => {
+    if (tableData && tableData.length > 0) {
+      const newPoints = tableData.map((point, index) => ({
+        type: "Point",
+        x: point.x * 50 + canvasRef.current.width / 2,
+        y: canvasRef.current.height / 2 - point.y * 50,
+        color: ELEMENT_COLORS.Point,
+        id: `table-point-${index}`,
+        label: point.label || String.fromCharCode(65 + index),
+        isDeleted: false
+      }));
+
+      setDrawnElements(prev => {
+        const filteredElements = prev.filter(el => !el.id.startsWith('table-point-'));
+        return [...filteredElements, ...newPoints];
+      });
+    }
+  }, [tableData]);
+
   const handleCanvasClick = (e) => {
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
@@ -532,77 +592,91 @@ const GraphArea = ({ selectedTool, equations = [], onExportPreview }) => {
     setContextMenu({ ...contextMenu, showColors: false });
   };
 
-  const handleMouseDown = useCallback(
-    (e) => {
-      if (selectedTool === "Move" && selectedElement) {
-        const canvas = canvasRef.current;
-        const rect = canvas.getBoundingClientRect();
-        startDrag.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-        setIsMoving(true);
-      }
-    },
-    [selectedTool, selectedElement]
-  );
+  const handleMouseDown = useCallback((e) => {
+    if (e.button === 1 || selectedTool === "Move") { // Middle mouse button or Move tool
+      e.preventDefault(); // Prevent default dragging behavior
+      const canvas = canvasRef.current;
+      const rect = canvas.getBoundingClientRect();
+      setIsDragging(true);
+      setDragStart({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      });
+      setLastOffset({ ...offset });
+    }
+  }, [selectedTool, offset]);
 
-  const moveElement = (id, newX, newY, drawnElements, setDrawnElements) => {
-    setDrawnElements((prevElements) =>
-      prevElements.map((element) =>
-        element.id === id ? { ...element, x: newX, y: newY } : element
-      )
-    );
-  };
+  const handleMouseMove = useCallback((e) => {
+    if (isDragging) {
+      const canvas = canvasRef.current;
+      const rect = canvas.getBoundingClientRect();
+      const newOffset = {
+        x: lastOffset.x + (e.clientX - rect.left - dragStart.x),
+        y: lastOffset.y + (e.clientY - rect.top - dragStart.y)
+      };
+      setOffset(newOffset);
+    }
+  }, [isDragging, dragStart, lastOffset]);
 
-  const handleMouseMove = useCallback(
-    (e) => {
-      if (isMoving && selectedElement) {
-        const canvas = canvasRef.current;
-        const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+  }, []);
 
-        moveElement(
-          selectedElement.id,
-          x,
-          y,
-          drawnElements,
-          setDrawnElements
-        );
-        startDrag.current = { x, y };
-      }
-    },
-    [isMoving, selectedElement, drawnElements]
-  );
-
-  const handleMouseUp = () => {
-    setIsMoving(false);
-    startDrag.current = null;
-  };
+  const handleWheel = useCallback((e) => {
+    e.preventDefault();
+    const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+    
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    
+    setScale(prevScale => {
+      const newScale = Math.min(Math.max(prevScale * zoomFactor, 0.01), 50);
+      
+      // Adjust offset to zoom towards mouse position
+      const scaleDiff = newScale - prevScale;
+      setOffset(prev => ({
+        x: prev.x - (mouseX - canvas.width / 2) * scaleDiff,
+        y: prev.y - (mouseY - canvas.height / 2) * scaleDiff
+      }));
+      
+      return newScale;
+    });
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-
     if (canvas) {
       canvas.addEventListener("mousedown", handleMouseDown);
       canvas.addEventListener("mousemove", handleMouseMove);
       canvas.addEventListener("mouseup", handleMouseUp);
       canvas.addEventListener("mouseleave", handleMouseUp);
+      canvas.addEventListener("wheel", handleWheel);
 
       return () => {
         canvas.removeEventListener("mousedown", handleMouseDown);
         canvas.removeEventListener("mousemove", handleMouseMove);
         canvas.removeEventListener("mouseup", handleMouseUp);
         canvas.removeEventListener("mouseleave", handleMouseUp);
+        canvas.removeEventListener("wheel", handleWheel);
       };
     }
-  }, [handleMouseDown, handleMouseMove]);
+  }, [handleMouseDown, handleMouseMove, handleMouseUp, handleWheel]);
 
   // Add zoom functions
   const handleZoomIn = () => {
-    setScale(prevScale => Math.min(prevScale * 1.2, 5)); // Max zoom 5x
+    setScale(prevScale => {
+        const newScale = Math.min(prevScale * 1.2, 5);
+        return newScale;
+    });
   };
 
   const handleZoomOut = () => {
-    setScale(prevScale => Math.max(prevScale / 1.2, 0.2)); // Min zoom 0.2x
+    setScale(prevScale => {
+        const newScale = Math.max(prevScale / 1.2, 0.2);
+        return newScale;
+    });
   };
 
   // Add fullscreen functions
@@ -617,184 +691,6 @@ const GraphArea = ({ selectedTool, equations = [], onExportPreview }) => {
       setIsFullscreen(false);
     }
   };
-
-  // Update useEffect for canvas drawing to include scale
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-    
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Apply scaling transformation
-    ctx.save();
-    ctx.scale(scale, scale);
-    
-    // Draw grid and elements here
-    drawGridAndAxes(ctx);
-    drawnElements.forEach(element => {
-      if (!element.isDeleted) {
-        const isSelected = selectedElement && selectedElement.id === element.id;
-        
-        // Set style based on element state
-        ctx.strokeStyle = isSelected ? "#ff4444" : element.color;
-        ctx.fillStyle = isSelected ? "#ff4444" : element.color;
-        
-        switch (element.type) {
-          case "Point":
-            // Draw outer circle
-            ctx.beginPath();
-            ctx.arc(element.x, element.y, 8, 0, 2 * Math.PI);
-            ctx.strokeStyle = isSelected ? "#cccccc" : "lightgray";
-            ctx.lineWidth = isSelected ? 2 : 1.5;
-            ctx.stroke();
-            ctx.closePath();
-
-            // Draw point
-            ctx.beginPath();
-            ctx.arc(element.x, element.y, 4, 0, 2 * Math.PI);
-            ctx.fill();
-            ctx.closePath();
-
-            // Draw label
-            if (element.label) {
-              ctx.font = "14px Arial";
-              ctx.fillStyle = "black";
-              ctx.fillText(element.label, element.x + 14, element.y - 14);
-            }
-            break;
-
-          case "Line":
-            // Draw the infinite line using extended points
-            ctx.beginPath();
-            ctx.moveTo(element.extendedStart.x, element.extendedStart.y);
-            ctx.lineTo(element.extendedEnd.x, element.extendedEnd.y);
-            ctx.lineWidth = isSelected ? 3 : 2;
-            ctx.stroke();
-            ctx.closePath();
-
-            // Draw the points at both ends
-            [element.start, element.end].forEach(point => {
-              // Draw outer circle
-              ctx.beginPath();
-              ctx.arc(point.x, point.y, 8, 0, 2 * Math.PI);
-              ctx.strokeStyle = isSelected ? "#cccccc" : "lightgray";
-              ctx.lineWidth = isSelected ? 2 : 1.5;
-              ctx.stroke();
-              ctx.closePath();
-
-              // Draw point
-              ctx.beginPath();
-              ctx.arc(point.x, point.y, 4, 0, 2 * Math.PI);
-              ctx.fillStyle = isSelected ? "#ff4444" : ELEMENT_COLORS.Point;
-              ctx.fill();
-              ctx.closePath();
-
-              // Draw label
-              if (point.label) {
-                ctx.font = "14px Arial";
-                ctx.fillStyle = "black";
-                ctx.fillText(point.label, point.x + 14, point.y - 14);
-              }
-            });
-            break;
-
-          case "Segment":
-            ctx.beginPath();
-            ctx.moveTo(element.start.x, element.start.y);
-            ctx.lineTo(element.end.x, element.end.y);
-            ctx.lineWidth = isSelected ? 3 : 2;
-            ctx.stroke();
-            ctx.closePath();
-
-            // Draw points at both ends
-            [element.start, element.end].forEach(point => {
-              ctx.beginPath();
-              ctx.arc(point.x, point.y, 8, 0, 2 * Math.PI);
-              ctx.strokeStyle = isSelected ? "#cccccc" : "lightgray";
-              ctx.lineWidth = isSelected ? 2 : 1.5;
-              ctx.stroke();
-              ctx.closePath();
-
-              ctx.beginPath();
-              ctx.arc(point.x, point.y, 4, 0, 2 * Math.PI);
-              ctx.fillStyle = isSelected ? "#ff4444" : ELEMENT_COLORS.Point;
-              ctx.fill();
-              ctx.closePath();
-
-              if (point.label) {
-                ctx.font = "14px Arial";
-                ctx.fillStyle = "black";
-                ctx.fillText(point.label, point.x + 14, point.y - 14);
-              }
-            });
-            break;
-
-          case "Polygon":
-            if (element.points && element.points.length > 2) {
-              ctx.beginPath();
-              ctx.moveTo(element.points[0].x, element.points[0].y);
-              element.points.forEach((point, index) => {
-                if (index > 0) {
-                  ctx.lineTo(point.x, point.y);
-                }
-              });
-              ctx.closePath();
-              ctx.lineWidth = isSelected ? 3 : 2;
-              ctx.stroke();
-              
-              // Fill polygon with semi-transparent color
-              const baseColor = isSelected ? "#ff4444" : element.color;
-              ctx.fillStyle = baseColor + "33"; // Add 20% opacity
-              ctx.fill();
-
-              // Draw points and labels for each vertex
-              element.points.forEach(point => {
-                ctx.beginPath();
-                ctx.arc(point.x, point.y, 8, 0, 2 * Math.PI);
-                ctx.strokeStyle = isSelected ? "#cccccc" : "lightgray";
-                ctx.lineWidth = isSelected ? 2 : 1.5;
-                ctx.stroke();
-                ctx.closePath();
-
-                ctx.beginPath();
-                ctx.arc(point.x, point.y, 4, 0, 2 * Math.PI);
-                ctx.fillStyle = isSelected ? "#ff4444" : ELEMENT_COLORS.Point;
-                ctx.fill();
-                ctx.closePath();
-
-                if (point.label) {
-                  ctx.font = "14px Arial";
-                  ctx.fillStyle = "black";
-                  ctx.fillText(point.label, point.x + 14, point.y - 14);
-                }
-              });
-            }
-            break;
-
-          case "Circle":
-            ctx.beginPath();
-            ctx.arc(element.x, element.y, element.radius || 50, 0, 2 * Math.PI);
-            ctx.lineWidth = isSelected ? 3 : 2;
-            ctx.stroke();
-            ctx.closePath();
-            break;
-
-          default:
-            break;
-        }
-      }
-    });
-    
-    // Draw all equations
-    equations.forEach(eq => {
-      if (eq.value) {
-        drawFunction(ctx, eq.value);
-      }
-    });
-    
-    ctx.restore();
-  }, [drawnElements, scale, equations, drawGridAndAxes, drawFunction, selectedElement, polygonPoints]);
 
   // Add export handler using useCallback
   const handleExport = useCallback(() => {
@@ -836,14 +732,41 @@ const GraphArea = ({ selectedTool, equations = [], onExportPreview }) => {
     setShowSettings(!showSettings);
   };
 
+  // Add resize handler
+  useEffect(() => {
+    const handleResize = () => {
+      if (canvasRef.current) {
+        // Set canvas dimensions to match container
+        canvasRef.current.width = canvasRef.current.offsetWidth;
+        canvasRef.current.height = canvasRef.current.offsetHeight;
+        
+        // Redraw everything after resize
+        const ctx = canvasRef.current.getContext('2d');
+        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+        drawGridAndAxes(ctx);
+      }
+    };
+
+    // Initial setup
+    handleResize();
+
+    // Add resize listener
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [drawGridAndAxes]);
+
   return (
     <div className="geometry-container">
       <canvas
         ref={canvasRef}
-        width={1400}
-        height={600}
         onClick={handleCanvasClick}
-      ></canvas>
+        style={{ 
+          cursor: isDragging ? 'grabbing' : (selectedTool === 'Move' ? 'grab' : 'default')
+        }}
+      />
       
       <div className="graph-controls">
       <button className="control-btn settings-btn" onClick={handleSettings} title="Settings">
@@ -914,6 +837,11 @@ GraphArea.propTypes = {
   selectedTool: PropTypes.string,
   equations: PropTypes.array,
   onExportPreview: PropTypes.func,
+  tableData: PropTypes.arrayOf(PropTypes.shape({
+    x: PropTypes.number,
+    y: PropTypes.number,
+    label: PropTypes.string
+  }))
 };
 
-export default GraphArea;
+export default GraphArea;
