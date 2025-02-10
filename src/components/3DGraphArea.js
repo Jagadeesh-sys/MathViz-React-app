@@ -102,12 +102,79 @@ const GraphArea3D = ({ equations, onExportPreview }) => {
     axesHelper.geometry.attributes.color.needsUpdate = true;
     newScene.add(axesHelper);
 
-    // Load font for labels
+    // Add tick marks and numbers along axes
+    const addAxisLabels = (font) => {
+      const tickSize = 0.2;
+      const labelOffset = 0.5;
+      
+      // Create tick marks and labels for each axis
+      for (let i = -10; i <= 10; i++) {
+        if (i === 0) continue; // Skip origin
+
+        // X-axis ticks and labels
+        const xTickGeometry = new THREE.BoxGeometry(0.1, tickSize, tickSize);
+        const xTickMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+        const xTick = new THREE.Mesh(xTickGeometry, xTickMaterial);
+        xTick.position.set(i, 0, 0);
+        newScene.add(xTick);
+
+        // X-axis number
+        const xNumberGeometry = new TextGeometry(i.toString(), {
+          font: font,
+          size: 0.3,
+          height: 0.01,
+        });
+        const xNumberMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+        const xNumber = new THREE.Mesh(xNumberGeometry, xNumberMaterial);
+        xNumber.position.set(i - 0.15, -labelOffset, 0);
+        newScene.add(xNumber);
+
+        // Y-axis ticks and labels
+        const yTickGeometry = new THREE.BoxGeometry(tickSize, 0.1, tickSize);
+        const yTickMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+        const yTick = new THREE.Mesh(yTickGeometry, yTickMaterial);
+        yTick.position.set(0, i, 0);
+        newScene.add(yTick);
+
+        // Y-axis number
+        const yNumberGeometry = new TextGeometry(i.toString(), {
+          font: font,
+          size: 0.3,
+          height: 0.01,
+        });
+        const yNumberMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+        const yNumber = new THREE.Mesh(yNumberGeometry, yNumberMaterial);
+        yNumber.position.set(-labelOffset, i - 0.15, 0);
+        yNumber.rotation.z = 0; // Keep Y-axis numbers upright
+        newScene.add(yNumber);
+
+        // Z-axis ticks and labels
+        const zTickGeometry = new THREE.BoxGeometry(tickSize, tickSize, 0.1);
+        const zTickMaterial = new THREE.MeshBasicMaterial({ color: 0x0000ff });
+        const zTick = new THREE.Mesh(zTickGeometry, zTickMaterial);
+        zTick.position.set(0, 0, i);
+        newScene.add(zTick);
+
+        // Z-axis number
+        const zNumberGeometry = new TextGeometry(i.toString(), {
+          font: font,
+          size: 0.3,
+          height: 0.01,
+        });
+        const zNumberMaterial = new THREE.MeshBasicMaterial({ color: 0x0000ff });
+        const zNumber = new THREE.Mesh(zNumberGeometry, zNumberMaterial);
+        zNumber.position.set(-labelOffset, 0, i - 0.15);
+        zNumber.rotation.y = Math.PI / 2; // Rotate Z-axis numbers to face camera
+        newScene.add(zNumber);
+      }
+    };
+
+    // Update font loader to include tick marks and numbers
     const fontLoader = new FontLoader();
     fontLoader.load(
       "https://threejs.org/examples/fonts/helvetiker_regular.typeface.json",
       (font) => {
-        // X-Axis Label
+        // Existing axis labels
         const xGeometry = new TextGeometry("X", {
           font: font,
           size: 0.5,
@@ -115,10 +182,9 @@ const GraphArea3D = ({ equations, onExportPreview }) => {
         });
         const xMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
         const xLabel = new THREE.Mesh(xGeometry, xMaterial);
-        xLabel.position.set(10, 0, 0); // Position at the end of X-axis
+        xLabel.position.set(10.5, 0, 0);
         newScene.add(xLabel);
 
-        // Y-Axis Label
         const yGeometry = new TextGeometry("Y", {
           font: font,
           size: 0.5,
@@ -126,10 +192,9 @@ const GraphArea3D = ({ equations, onExportPreview }) => {
         });
         const yMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
         const yLabel = new THREE.Mesh(yGeometry, yMaterial);
-        yLabel.position.set(0, 10, 0); // Position at the end of Y-axis
+        yLabel.position.set(0, 10.5, 0);
         newScene.add(yLabel);
 
-        // Z-Axis Label (optional)
         const zGeometry = new TextGeometry("Z", {
           font: font,
           size: 0.5,
@@ -137,8 +202,11 @@ const GraphArea3D = ({ equations, onExportPreview }) => {
         });
         const zMaterial = new THREE.MeshBasicMaterial({ color: 0x0000ff });
         const zLabel = new THREE.Mesh(zGeometry, zMaterial);
-        zLabel.position.set(0, 0, 10); // Position at the end of Z-axis
+        zLabel.position.set(0, 0, 10.5);
         newScene.add(zLabel);
+
+        // Add tick marks and numbers
+        addAxisLabels(font);
       }
     );
 
