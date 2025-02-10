@@ -6,20 +6,16 @@
 }
 
 .graph-area-3d {
-  flex-grow: 1;
-  height: 100%;
-  background-color: #ffffff;
   position: relative;
+  width: 100%;
+  height: 100vh;
   overflow: hidden;
-  border-radius: 4px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .graph-area-3d canvas {
-  width: 100% !important;
-  height: 100% !important;
-  background-color: #fff;
   display: block;
+  width: 100%;
+  height: 100%;
 }
 
 /* Toolbar styles are inherited from Toolbar.css */

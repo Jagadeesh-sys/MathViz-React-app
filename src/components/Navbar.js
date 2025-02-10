@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../styles/Navbar.css';
 import {
   FaShareAlt, FaChartLine, FaShapes, FaCube, FaPercentage, FaBars, FaTrash,
@@ -8,11 +9,19 @@ import {
 import ShareModal from './ShareModal';
 
 const Navbar = ({ onCalculatorTypeChange, onSaveGraph, onLoadGraph, onExportPreview, graphName }) => {
+  const navigate = useNavigate();
   const [selectedOption, setSelectedOption] = useState('graphing');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isHamburgerMenuOpen, setIsHamburgerMenuOpen] = useState(false);
   const [isSwitchCalculatorVisible, setIsSwitchCalculatorVisible] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+
+  const handleSignIn = (e) => {
+    e.preventDefault(); // Prevent default button behavior
+    console.log('Navigating to sign in...');
+    navigate('/signin');
+    setIsHamburgerMenuOpen(false);
+  };
 
   const options = [
     { value: 'graphing', label: 'Graphing', icon: <FaChartLine /> },
@@ -27,13 +36,13 @@ const Navbar = ({ onCalculatorTypeChange, onSaveGraph, onLoadGraph, onExportPrev
     { label: 'Open', icon: <FaFolderOpen />, onClick: () => document.getElementById("file-input").click() },
     { label: 'Save Online', icon: <FaCloudUploadAlt /> },
     { label: 'Save to json', icon: <FaSave />, onClick: onSaveGraph },
-    { label: 'Share', icon: <FaShareAlt /> },
+    { label: 'Share', icon: <FaShareAlt />, onClick: () => setIsShareModalOpen(true) },
     { label: 'Export  as', icon: <FaFileExport />, onClick: onExportPreview },
     { label: 'Print Preview', icon: <FaPrint />, onClick: () => window.print() },
     { label: 'Switch Calculator', icon: <FaCalculator />, onClick: () => setIsSwitchCalculatorVisible(true) },
     { label: 'Settings', icon: <FaCog /> },
     { label: 'Help & Feedback', icon: <FaQuestionCircle /> },
-    { label: 'Sign In', icon: <FaSignInAlt /> },
+    { label: 'Sign In', icon: <FaSignInAlt />, onClick: handleSignIn }
   ];
 
   const handleOptionClick = (value) => {
@@ -54,7 +63,10 @@ const Navbar = ({ onCalculatorTypeChange, onSaveGraph, onLoadGraph, onExportPrev
     <nav className="navbar">
       {/* Left Section */}
       <div className="navbar-left">
-        <FaBars className="hamburger-icon" onClick={() => setIsHamburgerMenuOpen(!isHamburgerMenuOpen)} />
+        <FaBars 
+          className="hamburger-icon" 
+          onClick={() => setIsHamburgerMenuOpen(!isHamburgerMenuOpen)} 
+        />
         <h1>
           <span className="math">Math</span>
           <span className="viz">Viz</span>
@@ -91,7 +103,13 @@ const Navbar = ({ onCalculatorTypeChange, onSaveGraph, onLoadGraph, onExportPrev
           className="share-icon" 
           onClick={() => setIsShareModalOpen(true)} 
         />
-        <button className="sign-in-button">SIGN IN</button>
+        <button 
+          className="sign-in-button" 
+          onClick={handleSignIn}
+          style={{ cursor: 'pointer' }}
+        >
+          <FaSignInAlt /> SIGN IN
+        </button>
       </div>
 
       {/* Hamburger Menu */}
@@ -101,11 +119,9 @@ const Navbar = ({ onCalculatorTypeChange, onSaveGraph, onLoadGraph, onExportPrev
             <div
               key={index}
               className="hamburger-item"
-              onClick={() => {
-                if (item.label === 'Share') {
-                  setIsShareModalOpen(true);
-                } else {
-                  item.onClick?.();
+              onClick={(e) => {
+                if (item.onClick) {
+                  item.onClick(e);
                 }
                 setIsHamburgerMenuOpen(false);
               }}

@@ -12,6 +12,9 @@ import DistributionBar from './components/DistributionBar';
 import DistributionArea from './components/DistributionArea';
 import TableBar from './components/TableBar';
 import ExportPreviewModal from './components/ExportPreviewModal';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import SignIn from './components/Auth/SignIn';
+import SignUp from './components/Auth/SignUp';
 
 const App = () => {
   const [showCalculator, setShowCalculator] = useState(false);
@@ -212,94 +215,106 @@ const App = () => {
   }, []);
 
   return (
-    <div className="App">
-      {exportPreview && (
-        <ExportPreviewModal
-          isOpen={!!exportPreview}
-          imageData={exportPreview}
-          onDownload={handleDownloadPreview}
-          onClose={handleClosePreview}
+    <Router>
+      <div className="App">
+        <Navbar 
+          onCalculatorTypeChange={handleAreaChange}
+          onSaveGraph={saveGraphToFile}
+          onLoadGraph={loadGraphFromFile}
+          onExportPreview={() => {
+            if (exportHandler) {
+              exportHandler();
+            }
+          }}
         />
-      )}
-      {showCalculator ? (
-        <div className="main-content">
-          <Navbar
-            onCalculatorTypeChange={handleAreaChange}
-            onSaveGraph={saveGraphToFile}
-            onLoadGraph={loadGraphFromFile}
-            onExportPreview={() => {
-              if (exportHandler) {
-                exportHandler();
-              }
-            }}
+        <Routes>
+          <Route path="/signin" element={<SignIn />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route
+            path="/"
+            element={
+              showCalculator ? (
+                <div className="main-content">
+                  <Sidebar
+                    selectedOption={selectedArea}
+                    onAlgebraClick={handleAlgebraClick}
+                    onToolsClick={handleToolsClick}
+                    onDistributionClick={handleDistributionClick}
+                    onTableClick={handleTableClick}
+                  />
+                  {visibleComponent === "inputBar" && (
+                    <InputBar
+                      equations={equations}
+                      onInputSubmit={handleInputSubmit}
+                      onEquationDelete={handleEquationDelete}
+                      onEquationEdit={handleEquationEdit}
+                      onStartEditEquation={handleStartEditEquation}
+                    />
+                  )}
+                  {selectedArea === "graphing" && (
+                    <GraphArea 
+                      equations={equations} 
+                      selectedTool={selectedTool} 
+                      points={points} 
+                      tableData={tableData}
+                      onAddPoint={handleAddPoint}
+                      onClearPoints={handleClearPoints}
+                      onExportPreview={handleExportPreview}
+                    />
+                  )}
+                  {selectedArea === "geometry" && (
+                    <GeometryArea 
+                      selectedTool={selectedTool} 
+                      equations={equations}
+                      shapes={geometryShapes}
+                      onExportPreview={handleExportPreview}
+                    />
+                  )}
+                  {selectedArea === "3dgraph" && (
+                    <ThreeDGraphArea 
+                      equations={equations}
+                      onExportPreview={handleExportPreview}
+                    />
+                  )}
+                  {selectedArea === "distribution" && (
+                    <DistributionArea 
+                      {...distributionParams}
+                      onExportPreview={handleExportPreview}
+                    />
+                  )}
+                  {visibleComponent === "toolbar" && (
+                    <Toolbar
+                      onSelectTool={handleSelectTool}
+                      selectedTool={selectedTool}
+                      onToolAction={onToolAction}
+                    />
+                  )}
+                  {visibleComponent === "distributionBar" && <DistributionBar onUpdate={handleDistributionUpdate} />}
+                  {visibleComponent === "tableBar" && (
+                    <TableBar 
+                      onAddPoint={handleAddPoint} 
+                      onClearPoints={handleClearPoints}
+                      tableData={tableData}
+                    />
+                  )}
+                </div>
+              ) : (
+                <HomePage onStartCalculator={handleStartCalculator} />
+              )
+            }
           />
-          <Sidebar
-            selectedOption={selectedArea}
-            onAlgebraClick={handleAlgebraClick}
-            onToolsClick={handleToolsClick}
-            onDistributionClick={handleDistributionClick}
-            onTableClick={handleTableClick}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+        {exportPreview && (
+          <ExportPreviewModal
+            isOpen={!!exportPreview}
+            imageData={exportPreview}
+            onDownload={handleDownloadPreview}
+            onClose={handleClosePreview}
           />
-          {visibleComponent === "inputBar" && (
-            <InputBar
-              equations={equations}
-              onInputSubmit={handleInputSubmit}
-              onEquationDelete={handleEquationDelete}
-              onEquationEdit={handleEquationEdit}
-              onStartEditEquation={handleStartEditEquation}
-            />
-          )}
-          {selectedArea === "graphing" && (
-            <GraphArea 
-              equations={equations} 
-              selectedTool={selectedTool} 
-              points={points} 
-              tableData={tableData}
-              onAddPoint={handleAddPoint}
-              onClearPoints={handleClearPoints}
-              onExportPreview={handleExportPreview}
-            />
-          )}
-          {selectedArea === "geometry" && (
-            <GeometryArea 
-              selectedTool={selectedTool} 
-              equations={equations}
-              shapes={geometryShapes}
-              onExportPreview={handleExportPreview}
-            />
-          )}
-          {selectedArea === "3dgraph" && (
-            <ThreeDGraphArea 
-              equations={equations}
-              onExportPreview={handleExportPreview}
-            />
-          )}
-          {selectedArea === "distribution" && (
-            <DistributionArea 
-              {...distributionParams}
-              onExportPreview={handleExportPreview}
-            />
-          )}
-          {visibleComponent === "toolbar" && (
-            <Toolbar
-              onSelectTool={handleSelectTool}
-              selectedTool={selectedTool}
-              onToolAction={onToolAction}
-            />
-          )}
-          {visibleComponent === "distributionBar" && <DistributionBar onUpdate={handleDistributionUpdate} />}
-          {visibleComponent === "tableBar" && (
-            <TableBar 
-              onAddPoint={handleAddPoint} 
-              onClearPoints={handleClearPoints}
-              tableData={tableData}
-            />
-          )}
-        </div>
-      ) : (
-        <HomePage onStartCalculator={handleStartCalculator} />
-      )}
-    </div>
+        )}
+      </div>
+    </Router>
   );
 };
 

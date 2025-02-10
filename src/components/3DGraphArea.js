@@ -41,25 +41,34 @@ const GraphArea3D = ({ equations, onExportPreview }) => {
     const container = graphContainerRef.current;
     if (!container) return;
 
+    // Set explicit dimensions for the container
+    container.style.width = '100%';
+    container.style.height = '100vh';
+
     // Scene setup
     const newScene = new THREE.Scene();
-    newScene.background = new THREE.Color(0xffffff); // White background
+    newScene.background = new THREE.Color(0xffffff);
     setScene(newScene);
 
-    // Camera setup
-    const newCamera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
-    newCamera.position.set(5, 5, 10);
+    // Camera setup with adjusted position and aspect ratio
+    const newCamera = new THREE.PerspectiveCamera(
+      75,
+      container.clientWidth / container.clientHeight,
+      0.1,
+      1000
+    );
+    newCamera.position.set(15, 15, 15); // Move camera further back
+    newCamera.lookAt(0, 0, 0);
     setCamera(newCamera);
 
     // Renderer setup
-    const newRenderer = new THREE.WebGLRenderer({ 
+    const newRenderer = new THREE.WebGLRenderer({
       antialias: true,
-      preserveDrawingBuffer: true, // Important for taking screenshots
-      alpha: true // Enable transparency
+      preserveDrawingBuffer: true,
+      alpha: true
     });
-    newRenderer.setPixelRatio(window.devicePixelRatio); // For sharp rendering
-    newRenderer.setClearColor(0xffffff, 1); // White background
     newRenderer.setSize(container.clientWidth, container.clientHeight);
+    container.innerHTML = ''; // Clear any existing content
     container.appendChild(newRenderer.domElement);
     setRenderer(newRenderer);
 
@@ -181,16 +190,32 @@ const GraphArea3D = ({ equations, onExportPreview }) => {
 
     animate();
 
-    return () => {
-      controls.dispose();
-      while (container.firstChild) {
-        container.firstChild.remove();
+    // Handle window resize
+    const handleResize = () => {
+      if (newCamera && newRenderer && container) {
+        newCamera.aspect = container.clientWidth / container.clientHeight;
+        newCamera.updateProjectionMatrix();
+        newRenderer.setSize(container.clientWidth, container.clientHeight);
       }
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      controls.dispose();
       newRenderer.dispose();
+      container.innerHTML = '';
     };
   }, [equations]);
 
-  return <div ref={graphContainerRef} className="graph-area-3d" />;
+  return (
+    <div 
+      ref={graphContainerRef} 
+      className="graph-area-3d" 
+      style={{ width: '100%', height: '100vh' }}
+    />
+  );
 };
 
 GraphArea3D.propTypes = {

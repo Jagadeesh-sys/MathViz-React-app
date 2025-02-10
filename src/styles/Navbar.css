@@ -372,3 +372,25 @@
   transform: rotate(90deg); /* Rotation animation on hover */
   color: #e91e63;
 }
+
+.sign-in-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.sign-in-btn:hover {
+  background-color: #0056b3;
+}
+
+.sign-in-btn svg {
+  font-size: 16px;
+}

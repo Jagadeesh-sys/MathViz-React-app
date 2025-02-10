@@ -20,7 +20,18 @@ import {
   drawAngleBisector,
   drawMidpoint,
 } from "../tools/ConstructTools";
-import { FaPalette, FaTrashAlt, FaSearchPlus, FaSearchMinus, FaExpand, FaCompress, FaCog } from "react-icons/fa";
+import { 
+  FaPalette, 
+  FaTrashAlt, 
+  FaSearchPlus, 
+  FaSearchMinus, 
+  FaExpand, 
+  FaCompress, 
+  FaCog,
+  FaPlus,         // For axes
+  FaThLarge,      // For grid
+  FaMagnet        // For snap to grid
+} from "react-icons/fa";
 import * as math from 'mathjs';
 import PropTypes from 'prop-types';
 
@@ -32,7 +43,7 @@ const ELEMENT_COLORS = {
   Circle: "blue",
 };
 
-// Update SCALE_INTERVALS to match GeoGebra's grid intervals
+// eslint-disable-next-line no-unused-vars
 const SCALE_INTERVALS = [
   0.01, 0.02, 0.05,        // Extremely zoomed out
   0.1, 0.2, 0.5,           // Very zoomed out
@@ -40,6 +51,31 @@ const SCALE_INTERVALS = [
   10, 20, 50,             // Zoomed in
   100, 200, 500,          // Very zoomed in
 ];
+
+const getNiceNumber = (x, round) => {
+  const exp = Math.floor(Math.log10(x));
+  const f = x / Math.pow(10, exp);
+  let nf;
+  
+  if (round) {
+    if (f < 1.5) nf = 1;
+    else if (f < 3) nf = 2;
+    else if (f < 7) nf = 5;
+    else nf = 10;
+  } else {
+    if (f <= 1) nf = 1;
+    else if (f <= 2) nf = 2;
+    else if (f <= 5) nf = 5;
+    else nf = 10;
+  }
+  return nf * Math.pow(10, exp);
+};
+
+const getGridSpacing = (viewportSize, pixelsPerUnit) => {
+  const minPixelsBetweenLines = 50; // Minimum pixels between grid lines
+  const rawSpacing = minPixelsBetweenLines / pixelsPerUnit;
+  return getNiceNumber(rawSpacing, true);
+};
 
 const GraphArea = ({ selectedTool, equations = [], onExportPreview, tableData = [] }) => {
   const [drawnElements, setDrawnElements] = useState([]);
@@ -56,141 +92,147 @@ const GraphArea = ({ selectedTool, equations = [], onExportPreview, tableData = 
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [lastOffset, setLastOffset] = useState({ x: 0, y: 0 });
   const [gridScale] = useState(50);
+  const [showGrid, setShowGrid] = useState(true);
+  const [gridType, setGridType] = useState("major-minor"); // "none", "major", "major-minor"
+  const [showAxes, setShowAxes] = useState(true);
+  const [snapToGrid, setSnapToGrid] = useState(true);
 
   const drawGridAndAxes = useCallback((ctx) => {
     const canvas = canvasRef.current;
     const width = canvas.width;
     const height = canvas.height;
     
-    // Adjust origin based on offset
     const originX = width / 2 + offset.x;
     const originY = height / 2 + offset.y;
-
-    // Calculate scaled grid spacing
-    const baseGridSpacing = gridScale / scale; // Invert scale to make grid grow when zooming out
     
-    // Define getGridInterval inside useCallback
-    const getGridInterval = (currentScale) => {
-      const baseInterval = currentScale;  // Remove inversion to match scale direction
-      return SCALE_INTERVALS.reduce((prev, curr) => {
-        return Math.abs(curr - baseInterval) < Math.abs(prev - baseInterval) ? curr : prev;
-      });
-    };
+    // Calculate pixels per unit based on scale
+    const pixelsPerUnit = gridScale * scale;
     
-    // Get appropriate grid interval
-    const gridInterval = getGridInterval(scale);
-    const minorGridInterval = gridInterval / 5;
+    // Get dynamic grid spacing
+    const majorSpacing = getGridSpacing(Math.min(width, height), pixelsPerUnit);
+    const minorSpacing = majorSpacing / 5;
 
-    // Draw minor grid lines
-    ctx.strokeStyle = "#e0e0e0";
-    ctx.lineWidth = 0.5;
+    // Calculate view bounds
+    const xMin = (0 - originX) / pixelsPerUnit;
+    const xMax = (width - originX) / pixelsPerUnit;
+    const yMin = (originY - height) / pixelsPerUnit;
+    const yMax = originY / pixelsPerUnit;
 
-    // Calculate grid boundaries
-    const leftBound = -Math.ceil(originX / baseGridSpacing);
-    const rightBound = Math.ceil((width - originX) / baseGridSpacing);
-    const topBound = Math.ceil(originY / baseGridSpacing);
-    const bottomBound = -Math.ceil((height - originY) / baseGridSpacing);
+    if (showGrid) {
+      // Function to draw grid lines
+      const drawGridLines = (spacing, isMinor) => {
+        const lineWidth = isMinor ? 0.5 : 1;
+        const strokeStyle = isMinor ? '#E8E8E8' : '#D3D3D3';
+        
+        ctx.lineWidth = lineWidth;
+        ctx.strokeStyle = strokeStyle;
+        
+        // Calculate start and end positions
+        const xStart = Math.floor(xMin / spacing) * spacing;
+        const xEnd = Math.ceil(xMax / spacing) * spacing;
+        const yStart = Math.floor(yMin / spacing) * spacing;
+        const yEnd = Math.ceil(yMax / spacing) * spacing;
 
-    // Draw minor grid lines
-    for (let i = Math.floor(leftBound / minorGridInterval); 
-         i <= Math.ceil(rightBound / minorGridInterval); 
-         i++) {
-      const x = i * minorGridInterval;
-      const pixelX = originX + x * baseGridSpacing;
-      ctx.beginPath();
-      ctx.moveTo(pixelX, 0);
-      ctx.lineTo(pixelX, height);
-      ctx.stroke();
-    }
+        // Draw vertical lines
+        for (let x = xStart; x <= xEnd; x += spacing) {
+          if (isMinor && Math.abs(x % majorSpacing) < spacing / 10) continue;
+          
+          const pixelX = originX + x * pixelsPerUnit;
+          ctx.beginPath();
+          ctx.moveTo(pixelX, 0);
+          ctx.lineTo(pixelX, height);
+          ctx.stroke();
+          
+          // Draw labels for major lines
+          if (!isMinor && Math.abs(x) > spacing / 10) {
+            ctx.font = '12px Arial';
+            ctx.fillStyle = '#666666';
+            ctx.textAlign = 'center';
+            ctx.fillText(x.toFixed(Math.max(0, -Math.floor(Math.log10(spacing)))), 
+                        pixelX, originY + 20);
+          }
+        }
 
-    for (let i = Math.floor(bottomBound / minorGridInterval); 
-         i <= Math.ceil(topBound / minorGridInterval); 
-         i++) {
-      const y = i * minorGridInterval;
-      const pixelY = originY - y * baseGridSpacing;
-      ctx.beginPath();
-      ctx.moveTo(0, pixelY);
-      ctx.lineTo(width, pixelY);
-      ctx.stroke();
-    }
+        // Draw horizontal lines
+        for (let y = yStart; y <= yEnd; y += spacing) {
+          if (isMinor && Math.abs(y % majorSpacing) < spacing / 10) continue;
+          
+          const pixelY = originY - y * pixelsPerUnit;
+          ctx.beginPath();
+          ctx.moveTo(0, pixelY);
+          ctx.lineTo(width, pixelY);
+          ctx.stroke();
+          
+          // Draw labels for major lines
+          if (!isMinor && Math.abs(y) > spacing / 10) {
+            ctx.font = '12px Arial';
+            ctx.fillStyle = '#666666';
+            ctx.textAlign = 'right';
+            ctx.fillText(y.toFixed(Math.max(0, -Math.floor(Math.log10(spacing)))), 
+                        originX - 10, pixelY + 4);
+          }
+        }
+      };
 
-    // Draw major grid lines
-    ctx.strokeStyle = "#cccccc";
-    ctx.lineWidth = 0.8;
-
-    // Calculate decimal places for labels
-    const decimalPlaces = Math.max(0, -Math.floor(Math.log10(gridInterval)));
-    
-    // Draw vertical major grid lines and labels
-    for (let i = Math.floor(leftBound); i <= Math.ceil(rightBound); i++) {
-      const x = i * gridInterval;
-      const pixelX = originX + x * baseGridSpacing;
-      
-      // Draw line
-      ctx.beginPath();
-      ctx.moveTo(pixelX, 0);
-      ctx.lineTo(pixelX, height);
-      ctx.stroke();
-
-      // Draw label if not at origin
-      if (Math.abs(x) > gridInterval / 1000) {
-        const label = x.toFixed(decimalPlaces);
-        ctx.font = "12px Arial";
-        ctx.fillStyle = "#666666";
-        ctx.textAlign = "center";
-        ctx.fillText(label, pixelX, originY + 20);
+      // Draw grid based on type
+      if (gridType === "major-minor") {
+        drawGridLines(minorSpacing, true);
       }
-    }
-
-    // Draw horizontal major grid lines and labels
-    for (let i = Math.floor(bottomBound); i <= Math.ceil(topBound); i++) {
-      const y = i * gridInterval;
-      const pixelY = originY - y * baseGridSpacing;
-      
-      // Draw line
-      ctx.beginPath();
-      ctx.moveTo(0, pixelY);
-      ctx.lineTo(width, pixelY);
-      ctx.stroke();
-
-      // Draw label if not at origin
-      if (Math.abs(y) > gridInterval / 1000) {
-        const label = y.toFixed(decimalPlaces);
-        ctx.font = "12px Arial";
-        ctx.fillStyle = "#666666";
-        ctx.textAlign = "right";
-        ctx.fillText(label, originX - 10, pixelY);
+      if (gridType === "major-minor" || gridType === "major") {
+        drawGridLines(majorSpacing, false);
       }
     }
 
     // Draw axes
-    ctx.strokeStyle = "#000000";
-    ctx.lineWidth = 1.5;
+    if (showAxes) {
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = 1.5;
+      
+      // X-axis
+      ctx.beginPath();
+      ctx.moveTo(0, originY);
+      ctx.lineTo(width, originY);
+      ctx.stroke();
 
-    // X-axis
-    ctx.beginPath();
-    ctx.moveTo(0, originY);
-    ctx.lineTo(width, originY);
-    ctx.stroke();
+      // Y-axis
+      ctx.beginPath();
+      ctx.moveTo(originX, 0);
+      ctx.lineTo(originX, height);
+      ctx.stroke();
 
-    // Y-axis
-    ctx.beginPath();
-    ctx.moveTo(originX, 0);
-    ctx.lineTo(originX, height);
-    ctx.stroke();
+      // Draw arrows
+      const arrowSize = 10;
+      
+      // X-axis arrow
+      ctx.beginPath();
+      ctx.moveTo(width - arrowSize, originY - arrowSize/2);
+      ctx.lineTo(width, originY);
+      ctx.lineTo(width - arrowSize, originY + arrowSize/2);
+      ctx.stroke();
 
-    // Draw origin (0,0)
-    ctx.fillStyle = "#000000";
-    ctx.textAlign = "right";
-    ctx.fillText("0", originX - 5, originY + 15);
+      // Y-axis arrow
+      ctx.beginPath();
+      ctx.moveTo(originX - arrowSize/2, arrowSize);
+      ctx.lineTo(originX, 0);
+      ctx.lineTo(originX + arrowSize/2, arrowSize);
+      ctx.stroke();
 
-    // Display current scale and grid interval
-    ctx.font = "14px Arial";
-    ctx.fillStyle = "#000000";
-    ctx.textAlign = "left";
+      // Origin label
+      ctx.font = '12px Arial';
+      ctx.fillStyle = '#666666';
+      ctx.textAlign = 'right';
+      ctx.fillText('0', originX - 5, originY + 15);
+    }
+
+    // Scale info
+    ctx.font = '12px Arial';
+    ctx.fillStyle = '#666666';
+    ctx.textAlign = 'left';
     ctx.fillText(`Scale: ${scale.toFixed(2)}x`, 10, 20);
-    ctx.fillText(`Grid Unit: ${gridInterval}`, 10, 40);
-  }, [offset, scale, gridScale]);
+    if (showGrid) {
+      ctx.fillText(`Grid Unit: ${majorSpacing}`, 10, 40);
+    }
+  }, [offset, scale, gridScale, showGrid, gridType, showAxes]);
 
   // Get next available label
   const getNextLabel = useCallback(() => {
@@ -758,6 +800,17 @@ const GraphArea = ({ selectedTool, equations = [], onExportPreview, tableData = 
     };
   }, [drawGridAndAxes]);
 
+  const handleGridOptionChange = (newGridType) => {
+    if (newGridType === "none") {
+      setShowGrid(false);
+      setGridType("none");
+    } else {
+      setShowGrid(true);
+      setGridType(newGridType);
+    }
+    setShowSettings(false); // Close settings after selection
+  };
+
   return (
     <div className="geometry-container">
       <canvas
@@ -769,9 +822,9 @@ const GraphArea = ({ selectedTool, equations = [], onExportPreview, tableData = 
       />
       
       <div className="graph-controls">
-      <button className="control-btn settings-btn" onClick={handleSettings} title="Settings">
-        <FaCog />
-      </button>
+        <button className="control-btn settings-btn" onClick={handleSettings} title="Settings">
+          <FaCog />
+        </button>
         <button className="control-btn" onClick={handleZoomIn} title="Zoom In">
           <FaSearchPlus />
         </button>
@@ -784,9 +837,69 @@ const GraphArea = ({ selectedTool, equations = [], onExportPreview, tableData = 
       </div>
       {showSettings && (
         <div className="settings-panel">
-          <h3>Graph Settings</h3>
-          <div className="settings-content">
-            {/* Add settings options here */}
+          <div className="settings-option">
+            <label title="Show Axes">
+              <FaPlus className="settings-icon" />
+              <input
+                type="checkbox"
+                checked={showAxes}
+                onChange={(e) => {
+                  setShowAxes(e.target.checked);
+                  setShowSettings(false);
+                }}
+              />
+              Show Axes
+            </label>
+          </div>
+          
+          <div className="settings-option grid-options">
+            <label title="No Grid">
+              <FaThLarge className="settings-icon" style={{ opacity: 0.3 }} />
+              <input
+                type="radio"
+                name="gridType"
+                checked={!showGrid}
+                onChange={() => handleGridOptionChange("none")}
+              />
+              No Grid
+            </label>
+            
+            <label title="Major Gridlines">
+              <FaThLarge className="settings-icon" style={{ opacity: 0.6 }} />
+              <input
+                type="radio"
+                name="gridType"
+                checked={showGrid && gridType === "major"}
+                onChange={() => handleGridOptionChange("major")}
+              />
+              Major Gridlines
+            </label>
+            
+            <label title="Major and Minor Gridlines">
+              <FaThLarge className="settings-icon" />
+              <input
+                type="radio"
+                name="gridType"
+                checked={showGrid && gridType === "major-minor"}
+                onChange={() => handleGridOptionChange("major-minor")}
+              />
+              Major and Minor Gridlines
+            </label>
+          </div>
+
+          <div className="settings-option">
+            <label title="Snap to Grid">
+              <FaMagnet className="settings-icon" />
+              <input
+                type="checkbox"
+                checked={snapToGrid}
+                onChange={(e) => {
+                  setSnapToGrid(e.target.checked);
+                  setShowSettings(false);
+                }}
+              />
+              Snap to Grid
+            </label>
           </div>
         </div>
       )}
