@@ -10,7 +10,7 @@
   position: fixed;
   left: 0; /* Align sidebar to the left edge of the screen */
   margin-left: 0; /* Ensure no margin on the left side */
-  box-shadow: 0 2px 5px rgba(18, 18, 18, 0.1); /* Light shadow effect */
+  box-shadow: 0 2px 5px rgba(20, 20, 20, 0.1); /* Light shadow effect */
   /* Added shadow for a subtle effect */
 }
 
@@ -33,7 +33,7 @@
 
 /* Icon styles */
 .sidebar-button i {
-  font-size: 24px; /* Icon size */
+  font-size: 19px; /* Icon size */
   margin-bottom: 5px; /* Space between icon and text */
 }
 

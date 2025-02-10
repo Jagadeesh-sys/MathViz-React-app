@@ -48,8 +48,8 @@ const SCALE_INTERVALS = [
   0.01, 0.02, 0.05,        // Extremely zoomed out
   0.1, 0.2, 0.5,           // Very zoomed out
   1, 2, 5,                 // Normal range
-  10, 20, 50,             // Zoomed in
-  100, 200, 500,          // Very zoomed in
+  10, 20, 50,100,             // Zoomed in
+  200, 500,1000,          // Very zoomed in
 ];
 
 const getNiceNumber = (x, round) => {
@@ -87,13 +87,13 @@ const GraphArea = ({ selectedTool, equations = [], onExportPreview, tableData = 
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const canvasRef = useRef(null);
-  const [isDragging, setIsDragging] = useState(false);
+  const [isDraggingCanvas, setIsDraggingCanvas] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [lastOffset, setLastOffset] = useState({ x: 0, y: 0 });
   const [gridScale] = useState(50);
   const [showGrid, setShowGrid] = useState(true);
-  const [gridType, setGridType] = useState("major-minor"); // "none", "major", "major-minor"
+  const [gridType, setGridType] = useState("major-minor");
   const [showAxes, setShowAxes] = useState(true);
   const [snapToGrid, setSnapToGrid] = useState(true);
 
@@ -185,8 +185,8 @@ const GraphArea = ({ selectedTool, equations = [], onExportPreview, tableData = 
 
     // Draw axes
     if (showAxes) {
-      ctx.strokeStyle = '#000000';
-      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = '#666666';
+      ctx.lineWidth = 1;
       
       // X-axis
       ctx.beginPath();
@@ -520,7 +520,11 @@ const GraphArea = ({ selectedTool, equations = [], onExportPreview, tableData = 
     }
   }, [tableData]);
 
-  const handleCanvasClick = (e) => {
+  const handleCanvasClick = useCallback((e) => {
+    if (isDraggingCanvas) {
+      return; // Don't handle clicks while dragging
+    }
+    
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -598,7 +602,15 @@ const GraphArea = ({ selectedTool, equations = [], onExportPreview, tableData = 
       default:
         break;
     }
-  };
+  }, [
+    isDraggingCanvas,
+    selectedTool,
+    drawnElements,
+    polygonPoints,
+    midpointPoints,
+    getNextLabel,
+    selectedElement
+  ]);
 
   const handleContextMenuAction = (action) => {
     if (!selectedElement) return; // Ensure an element is selected
@@ -635,34 +647,55 @@ const GraphArea = ({ selectedTool, equations = [], onExportPreview, tableData = 
   };
 
   const handleMouseDown = useCallback((e) => {
-    if (e.button === 1 || selectedTool === "Move") { // Middle mouse button or Move tool
-      e.preventDefault(); // Prevent default dragging behavior
+    if (e.button === 0) { // Left mouse button
+      e.preventDefault();
       const canvas = canvasRef.current;
       const rect = canvas.getBoundingClientRect();
-      setIsDragging(true);
+      setIsDraggingCanvas(true);
       setDragStart({
         x: e.clientX - rect.left,
         y: e.clientY - rect.top
       });
       setLastOffset({ ...offset });
     }
-  }, [selectedTool, offset]);
+  }, [offset]);
 
   const handleMouseMove = useCallback((e) => {
-    if (isDragging) {
-      const canvas = canvasRef.current;
-      const rect = canvas.getBoundingClientRect();
-      const newOffset = {
-        x: lastOffset.x + (e.clientX - rect.left - dragStart.x),
-        y: lastOffset.y + (e.clientY - rect.top - dragStart.y)
-      };
-      setOffset(newOffset);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const currentX = e.clientX - rect.left;
+    const currentY = e.clientY - rect.top;
+
+    if (isDraggingCanvas) {
+      // Calculate the change in position
+      const deltaX = currentX - dragStart.x;
+      const deltaY = currentY - dragStart.y;
+
+      // Update the offset based on the drag movement
+      setOffset({
+        x: lastOffset.x + deltaX,
+        y: lastOffset.y + deltaY
+      });
+
+      // Update cursor style
+      canvas.style.cursor = 'grabbing';
+    } else {
+      // Show grab cursor when not dragging
+      canvas.style.cursor = 'grab';
     }
-  }, [isDragging, dragStart, lastOffset]);
+  }, [isDraggingCanvas, dragStart, lastOffset]);
 
   const handleMouseUp = useCallback(() => {
-    setIsDragging(false);
-  }, []);
+    if (isDraggingCanvas) {
+      setIsDraggingCanvas(false);
+      const canvas = canvasRef.current;
+      if (canvas) {
+        canvas.style.cursor = 'grab';
+      }
+    }
+  }, [isDraggingCanvas]);
 
   const handleWheel = useCallback((e) => {
     e.preventDefault();
@@ -816,9 +849,11 @@ const GraphArea = ({ selectedTool, equations = [], onExportPreview, tableData = 
       <canvas
         ref={canvasRef}
         onClick={handleCanvasClick}
-        style={{ 
-          cursor: isDragging ? 'grabbing' : (selectedTool === 'Move' ? 'grab' : 'default')
-        }}
+        onMouseMove={handleMouseMove}
+        onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+        style={{ cursor: 'grab' }} // Default cursor style
       />
       
       <div className="graph-controls">
