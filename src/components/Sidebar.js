@@ -8,7 +8,7 @@ const sidebarOptions = {
   distribution: ['Distribution', 'Table']
 };
 
-const Sidebar = ({ selectedOption, onAlgebraClick, onToolsClick, onDistributionClick, onTableClick }) => {
+const Sidebar = ({ selectedOption, onAlgebraClick, onToolsClick, onDistributionClick, onTableClick, onSpreadsheetClick }) => {
   const [currentOptions, setCurrentOptions] = useState([]);
 
   useEffect(() => {
@@ -42,7 +42,7 @@ const Sidebar = ({ selectedOption, onAlgebraClick, onToolsClick, onDistributionC
         </button>
       )}
       {currentOptions.includes('Spreadsheet') && (
-        <button className="sidebar-button">
+        <button className="sidebar-button" onClick={onSpreadsheetClick}>
           <i className="fas fa-file-excel"></i>
           <span>Spreadsheet</span>
         </button>

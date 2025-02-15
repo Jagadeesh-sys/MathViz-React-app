@@ -16,6 +16,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import SignIn from './components/Auth/SignIn';
 import SignUp from './components/Auth/SignUp';
 import ThreeDToolbar from './components/3DToolbar';
+import SpreadsheetArea from './components/SpreadsheetArea';
 
 const App = () => {
   const [showCalculator, setShowCalculator] = useState(false);
@@ -66,6 +67,9 @@ const App = () => {
 
   const handleTableClick = () =>
     setVisibleComponent(visibleComponent === "tableBar" ? "" : "tableBar");
+
+  const handleSpreadsheetClick = () =>
+    setVisibleComponent(visibleComponent === "spreadsheet" ? "" : "spreadsheet");
 
   const handleSelectTool = (toolName) => setSelectedTool(toolName);
 
@@ -243,6 +247,7 @@ const App = () => {
                     onToolsClick={handleToolsClick}
                     onDistributionClick={handleDistributionClick}
                     onTableClick={handleTableClick}
+                    onSpreadsheetClick={handleSpreadsheetClick}
                   />
                   {visibleComponent === "inputBar" && (
                     <InputBar
@@ -304,6 +309,9 @@ const App = () => {
                       onClearPoints={handleClearPoints}
                       tableData={tableData}
                     />
+                  )}
+                  {visibleComponent === "spreadsheet" && (
+                    <SpreadsheetArea />
                   )}
                 </div>
               ) : (
