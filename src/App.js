@@ -15,6 +15,7 @@ import ExportPreviewModal from './components/ExportPreviewModal';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import SignIn from './components/Auth/SignIn';
 import SignUp from './components/Auth/SignUp';
+import ThreeDToolbar from './components/3DToolbar';
 
 const App = () => {
   const [showCalculator, setShowCalculator] = useState(false);
@@ -56,8 +57,9 @@ const App = () => {
   const handleAlgebraClick = () =>
     setVisibleComponent(visibleComponent === "inputBar" ? "" : "inputBar");
 
-  const handleToolsClick = () =>
+  const handleToolsClick = () => {
     setVisibleComponent(visibleComponent === "toolbar" ? "" : "toolbar");
+  };
 
   const handleDistributionClick = () =>
     setVisibleComponent(visibleComponent === "distributionBar" ? "" : "distributionBar");
@@ -282,11 +284,17 @@ const App = () => {
                       onExportPreview={handleExportPreview}
                     />
                   )}
-                  {visibleComponent === "toolbar" && (
+                  {visibleComponent === "toolbar" && selectedArea !== "3dgraph" && (
                     <Toolbar
                       onSelectTool={handleSelectTool}
                       selectedTool={selectedTool}
                       onToolAction={onToolAction}
+                    />
+                  )}
+                  {visibleComponent === "toolbar" && selectedArea === "3dgraph" && (
+                    <ThreeDToolbar
+                      onSelectTool={handleSelectTool}
+                      selectedTool={selectedTool}
                     />
                   )}
                   {visibleComponent === "distributionBar" && <DistributionBar onUpdate={handleDistributionUpdate} />}

@@ -49,7 +49,6 @@ const toolSections = [
       { name: "Parallel Line", icon: parallelIcon, action: drawParallelLine },
       { name: "Angle Bisector", icon: angleBisectorIcon, action: drawAngleBisector },
       { name: "Tangents", icon: tangentIcon, action: drawTangents },
-      { name: "Circle Intersection", icon: circleIcon, action: null },
     ],
   },
 ];
