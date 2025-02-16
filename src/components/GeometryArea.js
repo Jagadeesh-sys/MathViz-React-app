@@ -75,14 +75,17 @@ const GeometryArea = ({ selectedTool, equations = [], onExportPreview }) => {
     const originY = height / 2;
 
     ctx.beginPath();
-    ctx.strokeStyle = "blue";
+    ctx.strokeStyle = "green"; // Changed to green to match image
     ctx.lineWidth = 2;
 
+    const points = []; // Store points for later drawing
+    
     try {
-      // Compile the equation using mathjs
       const compiledEquation = math.compile(equation);
-
-      for (let pixelX = 0; pixelX < width; pixelX++) {
+      const isTrigFunction = equation.toLowerCase().includes('sin') || equation.toLowerCase().includes('cos');
+      
+      // Calculate points with smaller step size for smooth curve
+      for (let pixelX = 0; pixelX < width; pixelX += 2) {
         const x = (pixelX - originX) / scaleX;
         try {
           const y = compiledEquation.evaluate({ x });
@@ -93,13 +96,45 @@ const GeometryArea = ({ selectedTool, equations = [], onExportPreview }) => {
           } else {
             ctx.lineTo(pixelX, pixelY);
           }
+          
+          // Store points for trig functions at π/2 intervals
+          if (isTrigFunction) {
+            const xInPi = x * Math.PI;
+            // Check if x is close to a multiple of π/2
+            if (Math.abs(xInPi % (Math.PI/2)) < 0.01) {
+              points.push({ x: pixelX, y: pixelY });
+            }
+          }
         } catch (error) {
-          // Skip invalid points
           continue;
         }
       }
       
+      // Draw the continuous line
       ctx.stroke();
+      
+      // Draw points only for trig functions
+      if (isTrigFunction) {
+        points.forEach(point => {
+          // Draw outer circle (white fill with black border)
+          ctx.beginPath();
+          ctx.arc(point.x, point.y, 6, 0, 2 * Math.PI);
+          ctx.fillStyle = "white";
+          ctx.fill();
+          ctx.strokeStyle = "black";
+          ctx.lineWidth = 1;
+          ctx.stroke();
+          ctx.closePath();
+
+          // Draw inner circle (solid black fill)
+          ctx.beginPath();
+          ctx.arc(point.x, point.y, 3, 0, 2 * Math.PI);
+          ctx.fillStyle = "black";
+          ctx.fill();
+          ctx.closePath();
+        });
+      }
+      
     } catch (error) {
       console.error("Error drawing function:", error);
     }

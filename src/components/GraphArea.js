@@ -256,46 +256,115 @@ const GraphArea = ({ selectedTool, equations = [], onExportPreview, tableData = 
     return 'A';
   }, [drawnElements]);
 
+  // Add this helper function to detect extrema
+  const isExtremum = (x, equation, step = 0.01) => {
+    try {
+      const compiledEquation = math.compile(equation);
+      const y = compiledEquation.evaluate({ x });
+      const yLeft = compiledEquation.evaluate({ x: x - step });
+      const yRight = compiledEquation.evaluate({ x: x + step });
+      
+      // Check if it's a local maximum or minimum
+      return (y > yLeft && y > yRight) || (y < yLeft && y < yRight);
+    } catch (error) {
+      return false;
+    }
+  };
+
   // Function to draw mathematical functions
   const drawFunction = useCallback((ctx, equation) => {
     const canvas = canvasRef.current;
     const width = canvas.width;
     const height = canvas.height;
-    const scaleX = 50; // pixels per unit on x-axis
-    const scaleY = 50; // pixels per unit on y-axis
-    const originX = width / 2;
-    const originY = height / 2;
+    const pixelsPerUnit = gridScale * scale; // Use consistent scaling
+    const originX = width / 2 + offset.x;
+    const originY = height / 2 + offset.y;
+
+    // Calculate view bounds
+    const xMin = (0 - originX) / pixelsPerUnit;
+    const xMax = (width - originX) / pixelsPerUnit;
+    const step = (xMax - xMin) / width; // Adjust step size based on zoom level
 
     ctx.beginPath();
     ctx.strokeStyle = "blue";
     ctx.lineWidth = 2;
 
     try {
-      // Compile the equation using mathjs
-      const compiledEquation = math.compile(equation);
-
-      for (let pixelX = 0; pixelX < width; pixelX++) {
-        const x = (pixelX - originX) / scaleX;
-        try {
-          const y = compiledEquation.evaluate({ x });
-          const pixelY = originY - (y * scaleY);
-          
-          if (pixelX === 0) {
-            ctx.moveTo(pixelX, pixelY);
-          } else {
-            ctx.lineTo(pixelX, pixelY);
-          }
-        } catch (error) {
-          // Skip invalid points
-          continue;
+        const compiledEquation = math.compile(equation);
+        const isTrigFunction = equation.toLowerCase().includes('sin') || 
+                             equation.toLowerCase().includes('cos');
+        
+        let isFirstPoint = true;
+        for (let x = xMin; x <= xMax; x += step) {
+            try {
+                const y = compiledEquation.evaluate({ x });
+                const pixelX = originX + (x * pixelsPerUnit);
+                const pixelY = originY - (y * pixelsPerUnit); // Note the negative sign
+                
+                if (isFirstPoint) {
+                    ctx.moveTo(pixelX, pixelY);
+                    isFirstPoint = false;
+                } else {
+                    ctx.lineTo(pixelX, pixelY);
+                }
+            } catch (error) {
+                continue;
+            }
         }
-      }
-      
-      ctx.stroke();
+        
+        ctx.stroke();
+        
+        // Update dot drawing for trig functions
+        if (isTrigFunction) {
+            const piStep = Math.PI/2;
+            const startX = Math.ceil(xMin / piStep) * piStep;
+            const endX = Math.floor(xMax / piStep) * piStep;
+            
+            for (let x = startX; x <= endX; x += piStep) {
+                try {
+                    if (isExtremum(x, equation)) {
+                        const y = compiledEquation.evaluate({ x });
+                        const pixelX = originX + (x * pixelsPerUnit);
+                        const pixelY = originY - (y * pixelsPerUnit);
+                        
+                        // Draw outer white circle with green border
+                        ctx.beginPath();
+                        ctx.arc(pixelX, pixelY, 6, 0, 2 * Math.PI);
+                        ctx.fillStyle = "white";
+                        ctx.fill();
+                        ctx.strokeStyle = "#4CAF50"; // Green color
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+                        
+                        // Draw inner green dot
+                        ctx.beginPath();
+                        ctx.arc(pixelX, pixelY, 3, 0, 2 * Math.PI);
+                        ctx.fillStyle = "#4CAF50"; // Green color
+                        ctx.fill();
+                        
+                        // Store extremum point data
+                        const extremumPoint = {
+                            type: "ExtremumPoint",
+                            x: pixelX,
+                            y: pixelY,
+                            realX: x,
+                            realY: y,
+                            dotSize: 6,
+                            id: `extremum-${x}`
+                        };
+                        
+                        // Add to drawn elements
+                        setDrawnElements(prev => [...prev.filter(el => el.id !== extremumPoint.id), extremumPoint]);
+                    }
+                } catch (error) {
+                    continue;
+                }
+            }
+        }
     } catch (error) {
-      console.error("Error drawing function:", error);
+        console.error("Error drawing function:", error);
     }
-  }, []);
+}, [scale, offset, gridScale]);
 
   // Effect to redraw canvas when equations change
   useEffect(() => {
@@ -503,22 +572,40 @@ const GraphArea = ({ selectedTool, equations = [], onExportPreview, tableData = 
   // Add effect to handle table data points
   useEffect(() => {
     if (tableData && tableData.length > 0) {
-      const newPoints = tableData.map((point, index) => ({
-        type: "Point",
-        x: point.x * 50 + canvasRef.current.width / 2,
-        y: canvasRef.current.height / 2 - point.y * 50,
-        color: ELEMENT_COLORS.Point,
-        id: `table-point-${index}`,
-        label: point.label || String.fromCharCode(65 + index),
-        isDeleted: false
-      }));
+        const pixelsPerUnit = gridScale * scale;
+        const newPoints = tableData.map((point, index) => ({
+            type: "Point",
+            x: point.x * pixelsPerUnit + canvasRef.current.width / 2 + offset.x,
+            y: canvasRef.current.height / 2 - point.y * pixelsPerUnit + offset.y,
+            originalX: point.x, // Store original coordinates
+            originalY: point.y,
+            color: ELEMENT_COLORS.Point,
+            id: `table-point-${index}`,
+            label: point.label || String.fromCharCode(65 + index),
+            isDeleted: false
+        }));
 
-      setDrawnElements(prev => {
-        const filteredElements = prev.filter(el => !el.id.startsWith('table-point-'));
-        return [...filteredElements, ...newPoints];
-      });
+        setDrawnElements(prev => {
+            const filteredElements = prev.filter(el => !el.id.startsWith('table-point-'));
+            return [...filteredElements, ...newPoints];
+        });
     }
-  }, [tableData]);
+  }, [tableData, scale, offset, gridScale]);
+
+  // Add this new effect to update point positions when scaling/panning
+  useEffect(() => {
+    setDrawnElements(prev => prev.map(element => {
+        if (element.id.startsWith('table-point-') && 'originalX' in element && 'originalY' in element) {
+            const pixelsPerUnit = gridScale * scale;
+            return {
+                ...element,
+                x: element.originalX * pixelsPerUnit + canvasRef.current.width / 2 + offset.x,
+                y: canvasRef.current.height / 2 - element.originalY * pixelsPerUnit + offset.y
+            };
+        }
+        return element;
+    }));
+  }, [scale, offset, gridScale]);
 
   const handleCanvasClick = useCallback((e) => {
     if (isDraggingCanvas) {
@@ -532,6 +619,27 @@ const GraphArea = ({ selectedTool, equations = [], onExportPreview, tableData = 
     const ctx = canvas.getContext("2d");
 
     setContextMenu({ visible: false, x: 0, y: 0 }); // Hide context menu on canvas click
+
+    // Check for extremum points
+    const clickedExtremum = drawnElements.find(
+        (el) =>
+            el.type === "ExtremumPoint" &&
+            Math.sqrt((el.x - x) ** 2 + (el.y - y) ** 2) < el.dotSize
+    );
+
+    if (clickedExtremum) {
+        setContextMenu({
+            visible: true,
+            x: e.clientX,
+            y: e.clientY,
+            type: "extremum",
+            point: {
+                x: clickedExtremum.realX,
+                y: clickedExtremum.realY
+            }
+        });
+        return;
+    }
 
     // Check if clicked on an existing point
     const clickedPoint = drawnElements.find(
@@ -975,6 +1083,28 @@ const GraphArea = ({ selectedTool, equations = [], onExportPreview, tableData = 
               onClick={() => handleColorChange(color)}
             />
           ))}
+        </div>
+      )}
+      {contextMenu.visible && contextMenu.type === "extremum" && (
+        <div
+            className="extremum-tooltip"
+            style={{
+                position: 'absolute',
+                top: contextMenu.y - 40,
+                left: contextMenu.x + 10,
+                backgroundColor: 'white',
+                border: '1px solid #ccc',
+                padding: '5px 10px',
+                borderRadius: '4px',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                zIndex: 1000,
+                fontSize: '12px',
+                pointerEvents: 'none',
+                whiteSpace: 'nowrap'
+            }}
+        >
+            <div>Extremum</div>
+            <div>({contextMenu.point.x.toFixed(2)}, {contextMenu.point.y.toFixed(2)})</div>
         </div>
       )}
     </div>

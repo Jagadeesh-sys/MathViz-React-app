@@ -460,3 +460,14 @@
   touch-action: none;
   user-select: none;
 }
+
+.extremum-tooltip {
+  font-family: Arial, sans-serif;
+  background-color: white;
+  border: 1px solid #ccc;
+  padding: 5px 10px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  pointer-events: none;
+  white-space: nowrap;
+}
