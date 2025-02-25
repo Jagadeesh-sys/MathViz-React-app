@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import Keyboard from "./Keyboard"; // Import Keyboard component
 import "../styles/Inputbar.css"; // Ensure CSS reflects desired styles
+// Add logo import
+import logo from '../images/mathviz-logo.png';
 
 const InputBar = ({ equations, onInputSubmit, onEquationDelete, onEquationEdit }) => {
   const [inputValue, setInputValue] = useState("");
@@ -135,6 +137,11 @@ const InputBar = ({ equations, onInputSubmit, onEquationDelete, onEquationEdit }
 
       <div className="keyboard-wrapper">
         <Keyboard setInputValue={handleInputChange} onSubmit={handleAddEquation} />
+      </div>
+
+      {/* Add watermark div */}
+      <div className="watermark">
+        <img src={logo} alt="MathViz Watermark" />
       </div>
     </div>
   );

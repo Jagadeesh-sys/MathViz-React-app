@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Navbar.css';
+// Add this import
+import logo from '../images/mathviz-logo.png';
 import {
   FaShareAlt, FaChartLine, FaShapes, FaCube, FaPercentage, FaBars, FaTrash,
   FaFolderOpen, FaSave, FaCloudUploadAlt, FaFileExport, FaPrint,
@@ -67,10 +69,7 @@ const Navbar = ({ onCalculatorTypeChange, onSaveGraph, onLoadGraph, onExportPrev
           className="hamburger-icon" 
           onClick={() => setIsHamburgerMenuOpen(!isHamburgerMenuOpen)} 
         />
-        <h1>
-          <span className="math">Math</span>
-          <span className="viz">Viz</span>
-        </h1>
+        <img src={logo} alt="MathViz" className="navbar-logo" />
       </div>
 
       {/* Center Section */}

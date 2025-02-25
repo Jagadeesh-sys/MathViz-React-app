@@ -17,6 +17,7 @@ import SignIn from './components/Auth/SignIn';
 import SignUp from './components/Auth/SignUp';
 import ThreeDToolbar from './components/3DToolbar';
 import SpreadsheetArea from './components/SpreadsheetArea';
+import ResourcesPage from './components/ResourcesPage';
 
 const App = () => {
   const [showCalculator, setShowCalculator] = useState(false);
@@ -236,6 +237,7 @@ const App = () => {
         <Routes>
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
+          <Route path="/resources" element={<ResourcesPage />} />
           <Route
             path="/"
             element={

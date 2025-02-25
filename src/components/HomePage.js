@@ -13,7 +13,9 @@ const HomePage = ({ onStartCalculator }) => {
 
       <div className="button-container">
         <button className="start-button" onClick={onStartCalculator}>Start Calculator</button>
-        <button className="resources-button">Explore Math Resources</button>
+        <button className="resources-button" onClick={() => window.location.href = '/resources'}>
+          Explore Math Resources
+        </button>
       </div>
 
       <div className="features">
@@ -28,7 +30,6 @@ const HomePage = ({ onStartCalculator }) => {
 
       {/* Footer Section */}
       <footer className="footer">
-        <p>&copy; 2024 MathViz. All rights reserved.</p>
         <div className="footer-links">
           <a href="#about">About Us</a>
           <a href="#contact">Contact</a>

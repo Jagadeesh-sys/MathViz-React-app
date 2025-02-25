@@ -13,21 +13,22 @@
   font-family: Arial, sans-serif;
   box-sizing: border-box;
 }
-
-/* Navbar left */
+.navbar-logo {
+  height: 40px;
+  margin-left: 5px;
+  object-fit: contain;
+}
 .navbar-left {
   display: flex;
   align-items: center;
   gap: 10px;
 }
-
 .navbar-left h1 {
   font-size: 20px;
   font-weight: bold;
   margin: 0;
   color: #333;
 }
-
 /* Navbar center (for the dropdown) */
 .navbar-center {
   flex-grow: 1;
@@ -35,7 +36,6 @@
   justify-content: center;
   position: relative;
 }
-
 /* Dropdown styling */
 .custom-dropdown {
   position: relative;
@@ -48,11 +48,58 @@
   text-align: left;
   transition: border-color 0.3s ease;
 }
-
-.custom-dropdown:hover {
-  border-color: #6c5ce7;
+/* Update color variables at the top */
+:root {
+  --mathviz-green: #4bf164;
+  --mathviz-hover: #3dd152;
 }
 
+/* Update existing styles */
+.custom-dropdown:hover {
+  border-color: var(--mathviz-green);
+}
+.dropdown-item:hover {
+  background-color: #f5f5f5;
+  color: var(--mathviz-green);
+}
+.hamburger-icon:hover {
+  color: var(--mathviz-green);
+}
+.hamburger-item:hover {
+  background-color: #f5f5f5;
+  color: var(--mathviz-green);
+}
+.share-icon:hover {
+  color: var(--mathviz-green);
+}
+.assign-button {
+  background-color: var(--mathviz-green);
+}
+.assign-button:hover {
+  background-color: var(--mathviz-hover);
+}
+.sign-in-button {
+  border: 1px solid var(--mathviz-green);
+}
+.sign-in-button:hover {
+  background-color: var(--mathviz-green);
+  border-color: var(--mathviz-hover);
+}
+.calculator-option:hover {
+  border-color: var(--mathviz-green);
+}
+.calculator-option:hover .calculator-icon {
+  color: var(--mathviz-green);
+}
+.close-modal-button:hover {
+  color: var(--mathviz-green);
+}
+.sign-in-btn {
+  background-color: var(--mathviz-green);
+}
+.sign-in-btn:hover {
+  background-color: var(--mathviz-hover);
+}
 .dropdown-selected {
   display: flex;
   justify-content: center;
@@ -62,7 +109,6 @@
   font-size: 14px;
   font-weight: 500;
 }
-
 .dropdown-menu {
   position: absolute;
   top: 100%;
@@ -76,7 +122,6 @@
   z-index: 1000;
   animation: dropdown-fade 0.2s ease-in-out;
 }
-
 @keyframes dropdown-fade {
   from {
     opacity: 0;
@@ -87,7 +132,6 @@
     transform: translateY(0);
   }
 }
-
 .dropdown-item {
   display: flex;
   align-items: center;
@@ -99,19 +143,16 @@
   cursor: pointer;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
-
 .dropdown-item:hover {
   background-color: #f5f5f5;
-  color: #6c5ce7;
+  color: #4bf164;
 }
-
 /* Navbar right */
 .navbar-right {
   display: flex;
   align-items: center;
   gap: 15px;
 }
-
 /* Hamburger icon styling */
 .hamburger-icon {
   font-size: 18px;
@@ -119,11 +160,9 @@
   cursor: pointer;
   transition: color 0.3s ease;
 }
-
 .hamburger-icon:hover {
-  color: #6c5ce7;
+  color: #4bf164;
 }
-
 /* Hamburger menu styling */
 .hamburger-menu {
   position: fixed;
@@ -137,7 +176,6 @@
   z-index: 1100;
   overflow-y: auto;
 }
-
 .hamburger-item {
   display: flex;
   align-items: center;
@@ -147,43 +185,24 @@
   cursor: pointer;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
-
 .hamburger-item:hover {
   background-color: #f5f5f5;
-  color: #6c5ce7;
+  color: #4bf164;
 }
-
 .share-icon {
   font-size: 20px;
   color: gray;
   cursor: pointer;
   transition: color 0.3s ease;
 }
-
 .share-icon:hover {
-  color: #5a4cc1;
-}
-
-.assign-button {
-  background-color: #6c5ce7;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  cursor: pointer;
-  border-radius: 4px;
-  font-size: 13px;
-  font-weight: bold;
-  transition: background-color 0.3s ease;
-}
-
-.assign-button:hover {
-  background-color: #5a4cc1;
+  color: #4bf164;
 }
 
 .sign-in-button {
   background-color: transparent;
   color: #333;
-  border: 1px solid #6c5ce7;
+  border: 1px solid #4bf164;
   padding: 6px 12px;
   cursor: pointer;
   border-radius: 4px;
@@ -191,65 +210,53 @@
   font-weight: bold;
   transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
-
 .sign-in-button:hover {
-  background-color: #6c5ce7;
+  background-color: #4bf164;
   color: white;
-  border-color: #5a4cc1;
+  border-color: #4bf164;
 }
-
 /* Responsive Adjustments */
 @media (max-width: 768px) {
   .navbar-center {
     display: none; /* Hide dropdown on smaller screens */
   }
-
-  .navbar-right {
+.navbar-right {
     display: none; /* Hide right buttons on smaller screens */
   }
-
-  .hamburger-menu {
+.hamburger-menu {
     width: 100%;
     left: 0;
     top: 66px;
   }
-
-  .hamburger-item {
+.hamburger-item {
     padding: 10px 14px;
   }
-
-  .assign-button,
-  .sign-in-button {
+.assign-button,
+.sign-in-button {
     width: 100%;
     padding: 8px;
     margin-top: 10px;
   }
 }
-
 @media (max-width: 480px) {
   .navbar-left h1 {
     font-size: 16px;
   }
-
-  .hamburger-item {
+.hamburger-item {
     padding: 8px 12px;
     font-size: 13px;
   }
-
-  .assign-button,
-  .sign-in-button {
+.assign-button,
+.sign-in-button {
     font-size: 12px;
     padding: 6px;
   }
-}
-.math {
+}.math {
   color: #068ce5; /* Choose the color for "Math" */
 }
-
 .viz {
   color: #4bf164; /* Choose the color for "Viz" */
-}
-/* Modal Overlay */
+}/* Modal Overlay */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -263,7 +270,6 @@
   z-index: 1000;
   animation: fadeIn 0.5s ease; /* Fade-in animation */
 }
-
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -272,7 +278,6 @@
     opacity: 1;
   }
 }
-
 /* Modal Content */
 .modal-content {
   background: linear-gradient(135deg, #ff9a9e, #fad0c4, #fbc2eb, #a18cd1); /* Gradient background */
@@ -290,12 +295,10 @@
   text-align: center;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
-
 @keyframes gradientShift {
   0% { background-position: 0% 50%; }
   100% { background-position: 100% 50%; }
 }
-
 .calculator-options {
   display: flex;
   flex-direction: row;
@@ -304,7 +307,6 @@
   gap: 20px;
   margin-top: 20px;
 }
-
 /* Calculator Option */
 .calculator-option {
   display: flex;
@@ -319,7 +321,6 @@
   transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
   animation: optionPop 0.6s ease both;
 }
-
 @keyframes optionPop {
   from {
     transform: scale(0.8);
@@ -330,13 +331,11 @@
     opacity: 1;
   }
 }
-
 .calculator-option:hover {
   transform: scale(1.1); /* Slight zoom */
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
   border-color: #ff79c6; /* Colorful border on hover */
 }
-
 /* Calculator Icon */
 .calculator-icon {
   font-size: 36px;
@@ -344,11 +343,9 @@
   color: #6a0dad; /* Default icon color */
   transition: color 0.3s ease;
 }
-
 .calculator-option:hover .calculator-icon {
   color: #ff6347; /* Color change on hover */
 }
-
 /* Calculator Option Label */
 .calculator-option p {
   margin: 0;
@@ -356,7 +353,6 @@
   font-weight: bold;
   color: #333;
 }
-
 /* Close Button */
 .close-modal-button {
   position: absolute;
@@ -367,12 +363,10 @@
   cursor: pointer;
   transition: transform 0.3s ease, color 0.3s ease;
 }
-
 .close-modal-button:hover {
   transform: rotate(90deg); /* Rotation animation on hover */
   color: #e91e63;
 }
-
 .sign-in-btn {
   display: flex;
   align-items: center;
@@ -386,11 +380,9 @@
   font-size: 14px;
   transition: background-color 0.3s;
 }
-
 .sign-in-btn:hover {
   background-color: #0056b3;
 }
-
 .sign-in-btn svg {
   font-size: 16px;
 }
